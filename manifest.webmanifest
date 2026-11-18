@@ -1,6 +1,6 @@
 {
-  "name": "Lesejournal",
-  "short_name": "Lesejournal",
+  "name": "Reading Journal",
+  "short_name": "Reading Journal",
   "description": "Lesesessions tracken – mit Timer, Seiten-Schätzung und Lesestreak",
   "lang": "de",
   "start_url": "./",
@@ -18,6 +18,12 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

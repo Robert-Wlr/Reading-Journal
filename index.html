@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Lesejournal</title>
+<title>Reading Journal</title>
 <meta name="theme-color" content="#F3ECE0" id="themeColor">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Lesejournal">
+<meta name="apple-mobile-web-app-title" content="Reading Journal">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -149,7 +149,7 @@ input[type=range]{accent-color:var(--ac)}
 <script>
 'use strict';
 /* =========================================================
-   Lesejournal – Lesetracker mit Timer, Pace-Schätzung & Streak
+   Reading Journal – Lesetracker mit Timer, Pace-Schätzung & Streak
    Daten bleiben lokal im Browser (localStorage), Export als JSON.
    ========================================================= */
 const KEY = 'lesejournal.v1';
@@ -400,7 +400,7 @@ function home(){
   return `${blob(170, -70, 300, .8)}
   <div class="stack">
     <div class="row rel" style="justify-content:space-between;align-items:flex-start">
-      <div><div class="it mu">${greet}</div><h1 class="d">Lesejournal</h1></div>
+      <div><div class="it mu">${greet}</div><h1 class="d">Reading Journal</h1></div>
       <button class="rb card-bg s48" data-act="settings" aria-label="Einstellungen">${ic('gear',22,1.8)}</button>
     </div>
     ${main}
@@ -699,6 +699,7 @@ const SHEETS = {
         <div><div class="label" style="margin:0 0 6px 6px">Sicherung – deine Daten liegen nur auf diesem Gerät. ${lastBackupTxt()}.</div>
           <div class="row" style="gap:10px"><button class="pill sec sm grow" data-act="export">${ic('download',18)} Exportieren</button><button class="pill sec sm grow" data-act="import">Importieren</button></div>
           <div class="label" style="margin:8px 6px 0">Android: Sicherung in Google Drive oder „Dateien“ ablegen. iPhone: „In Dateien sichern“ → iCloud Drive. Importieren ersetzt die Daten auf diesem Gerät.</div></div>
+        <a class="link" href="about.html" style="align-self:center;display:inline-flex;align-items:center">Über die App</a>
         <button class="pill" data-act="close">${ic('check',20)} Fertig</button>
       </div></div>`;
   },
@@ -915,14 +916,14 @@ async function exportCard(){
 
 /* ---------------- Sicherung ---------------- */
 async function exportBackup(){
-  const name = `lesejournal-${today()}.json`;
+  const name = `reading-journal-${today()}.json`;
   const text = JSON.stringify(S);
   const done = () => { S.settings.lastBackup = new Date().toISOString(); S.settings.backupSnooze = null; save(); if (sheet) renderLayer(); render(); };
   for (const type of ['application/json', 'text/plain']){
     const file = new File([text], name, { type });
     try {
       if (navigator.canShare && navigator.canShare({ files:[file] })){
-        await navigator.share({ files:[file], title:'Lesejournal-Sicherung' });
+        await navigator.share({ files:[file], title:'Reading-Journal-Sicherung' });
         done(); toast('Sicherung übergeben.'); return;
       }
     } catch(e){ if (e.name === 'AbortError') return; }

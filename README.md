@@ -1,28 +1,37 @@
-# Lesejournal
+# Reading Journal
 
-Persönlicher Lesetracker als Web-App:
+**A calm, paper-warm reading tracker.** Time your sessions or log pages and let your personal pace fill in the rest. Build a gentle daily streak, scan books by ISBN, design quote cards in beautiful fonts and read to soft fire, drizzle or white noise. No account, no ads – your data stays on your device.
 
-- Timer für Lesesessions
-- Seiten eintragen, wobei die Zeit aus dem Tempo geschätzt wird
-- nur die Zeit eintragen, wobei die Seiten geschätzt werden
-- Lesestreak mit Tagesziel in Minuten oder Seiten
-- Nachtmodus
-- Bücher per Barcode, ISBN oder Titel hinzufügen
-- Konzentrationsklänge im Timer (Lagerfeuer, Nieselregen, White Noise – live erzeugt)
-- Statistik
-- Zitatkarten als Bild exportieren
+![Reading Journal](social-preview.jpg)
 
-## Daten
+**[Open the app](https://robert-wlr.github.io/Reading-Journal/)** · **[About / Vorstellung](https://robert-wlr.github.io/Reading-Journal/about.html)**
 
-Alle Daten liegen nur im Browser des Geräts (IndexedDB), es gibt keinen Server und kein Konto.
-Sicherungen erstellst du in der App unter Einstellungen → Sicherung → Exportieren.
+## Features
 
-## Installation
+- **Session timer** – keeps running in the background and shows roughly which page you should be on
+- **Pace-based estimates**
+  - Enter the page and the app estimates your reading time; adjust it with the pencil if needed.
+  - Enter only the time (e.g. from an e-reader) and the app works out the matching page in your printed copy.
+- **Reading streak** – daily goal in minutes or pages, and a celebration screen that grows with your streak
+- **Books** – add them by barcode scan, ISBN or title search (Open Library and Google Books); everything stays editable
+- **Quote cards**
+  - 13 typefaces, adjustable weight, italic or upright
+  - five colours, three formats
+  - share as an image
+- **Focus sounds** – campfire, drizzle and warm white noise, generated live
+- **Night mode, statistics and backups** – export to Google Drive or iCloud
 
-1. Dieses Repository über GitHub Pages veröffentlichen.
-2. Die Pages-Adresse im Handy-Browser öffnen.
-3. Die App zum Startbildschirm hinzufügen:
-   - Android (Chrome): Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“
-   - iPhone (Safari): Teilen → „Zum Home-Bildschirm“
+| | | | |
+|---|---|---|---|
+| ![](shot-heute.jpg) | ![](shot-timer.jpg) | ![](shot-feier.jpg) | ![](shot-zitat.jpg) |
 
-Buchdaten kommen von Open Library und Google Books.
+## Install
+
+Open the app link, then:
+
+- **Android (Chrome):** menu ⋮ → *Install app* / *Add to home screen*
+- **iPhone (Safari):** Share → *Add to Home Screen*
+
+## Privacy
+
+There is no server, account or tracking. All data is stored in your browser on your device (IndexedDB).

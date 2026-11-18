@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de" data-lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reading Journal – ein ruhiger Lesetracker</title>
+<meta name="description" content="Reading Journal is a calm, paper-warm reading tracker: session timer, pace-based estimates, reading streak, quote cards. No account – your data stays on your device.">
+<meta name="theme-color" content="#F3ECE0">
+<!-- Link-Vorschau -->
+<meta property="og:title" content="Reading Journal – a calm reading tracker">
+<meta property="og:description" content="Session timer, pace-based estimates, reading streak and quote cards. No account – your data stays on your device.">
+<meta property="og:image" content="https://robert-wlr.github.io/Reading-Journal/social-preview.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap">
+<style>
+:root{--bg:#F3ECE0;--card:#FBF7F0;--ink:#2A231C;--mu:#6B6053;--ac:#A7442A;--sage:#6F7D5C;--sand:#E8DCC8;--blob:#E8D3BE;--shadow:0 10px 30px rgba(84,60,30,.10),0 2px 6px rgba(84,60,30,.06)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Newsreader',Georgia,serif;font-size:19px;line-height:1.55;overflow-x:hidden}
+.d{font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1}
+a{color:var(--ac)}
+[data-lang=de] [lang=en],[data-lang=en] [lang=de]{display:none!important}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px;position:relative}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-size:22px}
+.brand img{width:42px;height:42px;border-radius:12px}
+.nav{display:flex;align-items:center;gap:10px}
+.langs{display:flex;background:var(--card);border-radius:22px;padding:4px;box-shadow:var(--shadow)}
+.langs button{border:none;background:transparent;min-width:44px;min-height:36px;border-radius:18px;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+.langs button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.pill{display:inline-flex;align-items:center;gap:10px;height:56px;padding:0 26px;border-radius:28px;background:var(--ink);color:var(--card);text-decoration:none;font-family:'Fraunces',serif;font-variation-settings:'SOFT' 100;font-size:18px}
+.pill.sec{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.blob{position:absolute;pointer-events:none;z-index:0}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:40px 0 70px;position:relative}
+.hero h1{font-size:clamp(52px,8vw,96px);font-weight:450;line-height:1;margin:0;letter-spacing:-.01em}
+.hero .tag{font-style:italic;font-size:clamp(22px,3vw,30px);color:var(--mu);margin:14px 0 28px;line-height:1.3}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.note{font-size:15px;color:var(--mu);margin-top:18px;font-style:italic}
+.phone{width:min(300px,78vw);aspect-ratio:780/1688;border-radius:44px;border:10px solid var(--ink);overflow:hidden;box-shadow:0 30px 60px rgba(42,35,28,.25);background:var(--ink);position:relative;z-index:1;margin:0 auto}
+.phone img{width:100%;height:100%;object-fit:cover;display:block}
+.duo{position:relative;height:620px;max-width:100%}
+.duo .phone{position:absolute}
+section.f{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding:60px 0;position:relative}
+section.f:nth-of-type(even) .txt{order:2}
+.kicker{font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage)}
+h2{font-size:clamp(32px,4.5vw,46px);font-weight:450;line-height:1.08;margin:6px 0 16px}
+.txt p{margin:0 0 12px;max-width:470px}
+.txt ul{padding-left:20px;margin:8px 0 0;max-width:470px}
+.txt li{margin:6px 0}
+.band{background:var(--card);border-radius:36px;box-shadow:var(--shadow);padding:44px 40px;margin:50px 0;position:relative;overflow:hidden}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:20px}
+.grid3 h3{font-size:22px;font-weight:500;margin:10px 0 6px}
+.grid3 p{margin:0;color:var(--mu);font-size:17px}
+.ic{width:52px;height:52px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--ac)}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:20px}
+.step{background:var(--bg);border-radius:26px;padding:24px}
+.step h3{margin:0 0 10px;font-size:22px;font-weight:500}
+.step ol{margin:0;padding-left:22px}
+.step li{margin:6px 0}
+footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
+@media (max-width:820px){
+  .hero,section.f{grid-template-columns:1fr;gap:34px}
+  section.f:nth-of-type(even) .txt{order:0}
+  .grid3,.steps{grid-template-columns:1fr}
+  .duo{height:clamp(380px,128vw,560px)}
+  .duo .phone{width:min(240px,56vw)}
+  .band{padding:32px 24px}
+  .nav .pill{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">  <svg class="blob" aria-hidden="true" width="620" height="620" viewBox="0 0 200 200" style="right:-200px;top:-120px"><path fill="var(--blob)" d="M43.6,-58.2C55.9,-49.6,64.2,-35.3,69.4,-19.6C74.6,-3.9,76.7,13.2,70.4,26.5C64.1,39.8,49.4,49.3,34.2,57.5C19,65.7,3.3,72.6,-13.6,72.4C-30.5,72.2,-48.6,64.9,-59.6,51.6C-70.6,38.3,-74.5,19.1,-72.6,1.1C-70.7,-17,-63,-33.9,-50.7,-42.9C-38.4,-51.9,-21.5,-53,-4.8,-46.9C11.9,-40.8,31.3,-66.8,43.6,-58.2Z" transform="translate(100 100) rotate(15)"/></svg></div>
+
+  <header class="rel" style="position:relative;z-index:2">
+    <a class="brand d" href="#top"><img src="icon-180.png" alt="" style="box-shadow:0 4px 12px rgba(84,60,30,.15)">Reading Journal</a>
+    <div class="nav">
+      <div class="langs" role="group" aria-label="Sprache / Language"><button data-l="de" aria-pressed="true">DE</button><button data-l="en" aria-pressed="false">EN</button></div>
+      <a class="pill" href="./" style="height:44px;font-size:16px;padding:0 18px"><span lang="de">App öffnen</span><span lang="en">Open app</span></a>
+    </div>
+  </header>
+
+  <div class="hero" id="top">
+    <div style="position:relative;z-index:1">
+      <h1 class="d">Reading Journal</h1>
+      <p class="tag"><span lang="de">Ein ruhiger, papierwarmer Lesetracker – für Lesesessions, die man gern festhält.</span><span lang="en">A calm, paper-warm reading tracker – for reading sessions worth keeping.</span></p>
+      <div class="ctas">
+        <a class="pill" href="./"><span lang="de">App öffnen</span><span lang="en">Open the app</span></a>
+        <a class="pill sec" href="#install"><span lang="de">Installieren</span><span lang="en">Install</span></a>
+      </div>
+      <p class="note"><span lang="de">Kostenlos · ohne Konto · ohne Werbung · für Android und iPhone</span><span lang="en">Free · no account · no ads · for Android and iPhone</span></p>
+    </div>
+    <div class="duo">
+      <div class="phone" style="left:4%;top:30px;transform:rotate(-5deg)"><img src="shot-heute.jpg" alt="Startseite mit aktuellem Buch, Lesestreak und Jahresziel" loading="eager"></div>
+      <div class="phone" style="right:2%;top:0;transform:rotate(5deg)"><img src="shot-heute-nacht.jpg" alt="Startseite im Nachtmodus" loading="eager"></div>
+    </div>
+  </div>
+
+  <section class="f">
+    <div class="txt">
+      <div class="kicker"><span lang="de">Timer & Klänge</span><span lang="en">Timer & sounds</span></div>
+      <h2 class="d"><span lang="de">Lesen starten. Einfach.</span><span lang="en">Start reading. That's it.</span></h2>
+      <p><span lang="de">Ein Tipp auf „Weiterlesen“ startet die Uhr. Der Timer läuft weiter, auch wenn du die App schließt, und zeigt, auf welcher Seite du ungefähr sein müsstest.</span><span lang="en">One tap on “Continue reading” starts the clock. It keeps running when you close the app and shows roughly which page you should be on.</span></p>
+      <p><span lang="de">Wer mag, liest zu sanften Klängen: Lagerfeuer, Nieselregen oder warmes Rauschen – live erzeugt, ohne Loop-Schnitt.</span><span lang="en">If you like, read to gentle sounds: campfire, drizzle or warm white noise – generated live, with no audible loop.</span></p>
+    </div>
+    <div class="phone"><img src="shot-timer.jpg" alt="Laufender Timer mit Lagerfeuer-Klang" loading="eager"></div>
+  </section>
+
+  <section class="f">
+    <div class="txt">
+      <div class="kicker"><span lang="de">Dein Tempo</span><span lang="en">Your pace</span></div>
+      <h2 class="d"><span lang="de">Uhr vergessen? Kein Problem.</span><span lang="en">Forgot the timer? No problem.</span></h2>
+      <p><span lang="de">Reading Journal lernt aus deinen gemessenen Sitzungen, wie viele Seiten pro Stunde du in <em>diesem</em> Buch liest.</span><span lang="en">Reading Journal learns from your timed sessions how many pages per hour you read in <em>this</em> book.</span></p>
+      <ul>
+        <li><span lang="de">Nur die Seite eintragen – die Lesezeit wird geschätzt. Weicht sie ab, korrigierst du sie mit dem Stift.</span><span lang="en">Just enter the page – reading time is estimated. If it's off, fix it with the pencil.</span></li>
+        <li><span lang="de">Nur die Zeit bekannt, etwa vom E-Reader? Dann rechnet die App die Seite im gedruckten Buch hoch.</span><span lang="en">Only know the time, e.g. from an e-reader? The app works out the matching page in your printed copy.</span></li>
+        <li><span lang="de">Geschätztes zählt für Fortschritt und Serie – aber nie für dein Tempo.</span><span lang="en">Estimates count for progress and streaks – never for your pace.</span></li>
+      </ul>
+    </div>
+    <div class="phone"><img src="shot-eintragen.jpg" alt="Seiten eintragen mit geschätzter Lesezeit" loading="eager"></div>
+  </section>
+
+  <section class="f">
+    <div class="txt">
+      <div class="kicker"><span lang="de">Lesestreak</span><span lang="en">Reading streak</span></div>
+      <h2 class="d"><span lang="de">Jeder Tag zählt – und wird gefeiert.</span><span lang="en">Every day counts – and gets celebrated.</span></h2>
+      <p><span lang="de">Lege dein Tagesziel in Minuten oder Seiten fest. Nach jedem Eintrag zeigt dir die App deine Serie – dezent am Anfang, mit Konfetti ab Tag 15 und richtig festlich ab Tag 30.</span><span lang="en">Set a daily goal in minutes or pages. After every entry the app shows your streak – subtle at first, with confetti from day 15 and a real celebration from day 30.</span></p>
+      <p><span lang="de">Dazu: dein Lesetempo pro Session und wie viele Bücher du in diesem Jahr gelesen hast.</span><span lang="en">Plus: your pace per session and how many books you've finished this year.</span></p>
+    </div>
+    <div class="phone"><img src="shot-feier.jpg" alt="Feier-Screen: Tag 24 der Lese-Serie" loading="eager"></div>
+  </section>
+
+  <section class="f">
+    <div class="txt">
+      <div class="kicker"><span lang="de">Zitatkarten</span><span lang="en">Quote cards</span></div>
+      <h2 class="d"><span lang="de">Sätze, die bleiben.</span><span lang="en">Sentences that stay.</span></h2>
+      <p><span lang="de">Halte Zitate während des Lesens fest und gestalte daraus Karten: 13 sorgfältig gewählte Schriften von Fraunces bis zur kalligrafischen Schreibschrift, stufenlose Dicke, kursiv oder aufrecht, fünf Farben, drei Formate.</span><span lang="en">Save quotes while you read and turn them into cards: 13 carefully chosen typefaces from Fraunces to calligraphic script, adjustable weight, italic or upright, five colours, three formats.</span></p>
+      <p><span lang="de">Als Bild teilen – für Story, Status oder einfach fürs Fotoalbum.</span><span lang="en">Share as an image – for stories, chats or your photo library.</span></p>
+    </div>
+    <div class="phone"><img src="shot-zitat.jpg" alt="Zitatkarte gestalten" loading="eager"></div>
+  </section>
+
+  <section class="f">
+    <div class="txt">
+      <div class="kicker"><span lang="de">Nachtmodus & Statistik</span><span lang="en">Night mode & stats</span></div>
+      <h2 class="d"><span lang="de">Für die Lesestunde im Bett.</span><span lang="en">Made for reading in bed.</span></h2>
+      <p><span lang="de">Ein warmer Nachtmodus statt kaltem Blaulicht – automatisch oder per Hand. Die Statistik zeigt Minuten pro Tag, deinen Lesekalender, deine längste Serie und dein Tempo pro Buch.</span><span lang="en">A warm night mode instead of cold blue light – automatic or manual. Stats show minutes per day, your reading calendar, your longest streak and your pace per book.</span></p>
+    </div>
+    <div class="phone"><img src="shot-statistik-nacht.jpg" alt="Statistik im Nachtmodus" loading="eager"></div>
+  </section>
+
+  <div class="band">
+    <div class="kicker"><span lang="de">Privat & einfach</span><span lang="en">Private & simple</span></div>
+    <h2 class="d"><span lang="de">Deine Daten gehören dir.</span><span lang="en">Your data is yours.</span></h2>
+    <div class="grid3">
+      <div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3 class="d"><span lang="de">Kein Konto</span><span lang="en">No account</span></h3><p><span lang="de">Alles liegt nur auf deinem Gerät. Kein Server, kein Tracking, keine Werbung.</span><span lang="en">Everything stays on your device. No server, no tracking, no ads.</span></p></div>
+      <div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg></div>
+        <h3 class="d"><span lang="de">Bücher per Scan</span><span lang="en">Scan your books</span></h3><p><span lang="de">Strichcode scannen, ISBN tippen oder Titel suchen – Daten und Cover kommen von Open Library und Google Books.</span><span lang="en">Scan the barcode, type the ISBN or search by title – data and covers come from Open Library and Google Books.</span></p></div>
+      <div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/></svg></div>
+        <h3 class="d"><span lang="de">Sicherung</span><span lang="en">Backups</span></h3><p><span lang="de">Mit einem Tipp nach Google Drive oder iCloud sichern – die App erinnert dich freundlich daran.</span><span lang="en">Back up to Google Drive or iCloud with one tap – the app gently reminds you.</span></p></div>
+    </div>
+  </div>
+
+  <div class="band" id="install">
+    <div class="kicker"><span lang="de">Installation</span><span lang="en">Installation</span></div>
+    <h2 class="d"><span lang="de">In einer Minute auf dem Startbildschirm.</span><span lang="en">On your home screen in a minute.</span></h2>
+    <p style="max-width:620px;margin:0"><span lang="de">Reading Journal ist eine Web-App: kein App Store nötig. Einmal hinzugefügt, startet sie im Vollbild und funktioniert auch offline.</span><span lang="en">Reading Journal is a web app – no app store needed. Once added, it opens full-screen and works offline.</span></p>
+    <div class="steps">
+      <div class="step"><h3 class="d">Android · Chrome</h3><ol>
+        <li><span lang="de"><a href="./">App öffnen</a></span><span lang="en"><a href="./">Open the app</a></span></li>
+        <li><span lang="de">Menü ⋮ antippen</span><span lang="en">Tap the ⋮ menu</span></li>
+        <li><span lang="de">„App installieren“ oder „Zum Startbildschirm hinzufügen“</span><span lang="en">“Install app” or “Add to home screen”</span></li></ol></div>
+      <div class="step"><h3 class="d">iPhone · Safari</h3><ol>
+        <li><span lang="de"><a href="./">App öffnen</a></span><span lang="en"><a href="./">Open the app</a></span></li>
+        <li><span lang="de">Teilen-Symbol antippen</span><span lang="en">Tap the Share icon</span></li>
+        <li><span lang="de">„Zum Home-Bildschirm“</span><span lang="en">“Add to Home Screen”</span></li></ol></div>
+    </div>
+    <p class="note"><span lang="de">Tipp: Starte die App danach immer über das Icon – so bleiben deine Daten dauerhaft gespeichert.</span><span lang="en">Tip: always launch the app from its icon afterwards – that keeps your data stored permanently.</span></p>
+  </div>
+
+  <footer>
+    <span class="d">Reading Journal</span> · <span lang="de">gemacht mit Liebe zum Lesen</span><span lang="en">made with a love of reading</span> · <a href="./"><span lang="de">App öffnen</span><span lang="en">Open app</span></a>
+  </footer>
+</div>
+<script>
+(function(){
+  var html = document.documentElement, btns = document.querySelectorAll('.langs button');
+  function set(l){ html.dataset.lang = l; html.lang = l; btns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.l === l); });
+    document.title = l === 'en' ? 'Reading Journal – a calm reading tracker' : 'Reading Journal – ein ruhiger Lesetracker';
+    try { localStorage.setItem('lj.lang', l); } catch(e){} }
+  var saved; try { saved = localStorage.getItem('lj.lang'); } catch(e){}
+  set(saved || ((navigator.language || 'de').slice(0,2) === 'de' ? 'de' : 'en'));
+  btns.forEach(function(b){ b.addEventListener('click', function(){ set(b.dataset.l); }); });
+})();
+</script>
+</body>
+</html>
