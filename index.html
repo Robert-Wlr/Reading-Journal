@@ -301,8 +301,9 @@ let sheet = null; // {type,...}
 function toast(msg){ const d = document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent = msg; document.body.appendChild(d); setTimeout(()=>d.remove(), 2600); }
 function coverHTML(b, w, h, tilt = 0){
   const fs = Math.max(10, Math.round(w/8));
-  const inner = b && b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" onerror="this.remove()">` : '';
-  const ph = `<div class="ph" style="font-size:${fs}px"><span>${esc(b?.title || 'Buch')}</span>${w>60?`<small style="font-size:${Math.max(9,fs-4)}px">${esc(b?.author||'')}</small>`:''}</div>`;
+  const has = !!(b && b.cover);
+  const inner = has ? `<img src="${esc(b.cover)}" alt="" loading="lazy" onerror="this.previousElementSibling.style.display='';this.remove()">` : '';
+  const ph = `<div class="ph" style="font-size:${fs}px;${has ? 'display:none' : ''}"><span>${esc(b?.title || 'Buch')}</span>${w>60?`<small style="font-size:${Math.max(9,fs-4)}px">${esc(b?.author||'')}</small>`:''}</div>`;
   const hue = b ? [...(b.title||'')].reduce((a,c)=>a+c.charCodeAt(0),0) % 4 : 0;
   const bg = ['#3E5A48','#7A3B2A','#36475E','#6A5A3A'][hue];
   return `<div class="cover" style="width:${w}px;height:${h}px;background:${bg};transform:rotate(${tilt}deg)">${ph}${inner}</div>`;

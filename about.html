@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Reading Journal – ein ruhiger Lesetracker</title>
-<meta name="description" content="Reading Journal is a calm, paper-warm reading tracker: session timer, pace-based estimates, reading streak, quote cards. No account – your data stays on your device.">
+<meta name="description" content="Read, track, keep going: Reading Journal times your reading, shows how much longer you’ll need for your book and keeps your reading streak alive. No account – your data stays on your device.">
 <meta name="theme-color" content="#F3ECE0">
 <!-- Link-Vorschau -->
 <meta property="og:title" content="Reading Journal – a calm reading tracker">
@@ -54,6 +54,9 @@ h2{font-size:clamp(32px,4.5vw,46px);font-weight:450;line-height:1.08;margin:6px 
 .txt ul{padding-left:20px;margin:8px 0 0;max-width:470px}
 .txt li{margin:6px 0}
 .band{background:var(--card);border-radius:36px;box-shadow:var(--shadow);padding:44px 40px;margin:50px 0;position:relative;overflow:hidden}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+.grid4 h3{font-size:22px;font-weight:500;margin:10px 0 6px}
+.grid4 p{margin:0;color:var(--mu);font-size:17px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:20px}
 .grid3 h3{font-size:22px;font-weight:500;margin:10px 0 6px}
 .grid3 p{margin:0;color:var(--mu);font-size:17px}
@@ -68,6 +71,10 @@ footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
   .hero,section.f{grid-template-columns:1fr;gap:34px}
   section.f:nth-of-type(even) .txt{order:0}
   .grid3,.steps{grid-template-columns:1fr}
+  .grid4{grid-template-columns:1fr;gap:20px}
+  .grid4>div{display:grid;grid-template-columns:52px 1fr;column-gap:16px;align-items:start}
+  .grid4 .ic{grid-row:span 2}
+  .grid4 h3{margin:2px 0 2px}
   .duo{height:clamp(380px,128vw,560px)}
   .duo .phone{width:min(240px,56vw)}
   .band{padding:32px 24px}
@@ -90,7 +97,7 @@ footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
   <div class="hero" id="top">
     <div style="position:relative;z-index:1">
       <h1 class="d">Reading Journal</h1>
-      <p class="tag"><span lang="de">Ein ruhiger, papierwarmer Lesetracker – für Lesesessions, die man gern festhält.</span><span lang="en">A calm, paper-warm reading tracker – for reading sessions worth keeping.</span></p>
+      <p class="tag"><span lang="de">Lesen, tracken, dranbleiben.<br>Sieh, wie lange du für dein Buch noch brauchen wirst, und halte deine Lesestreaks fest.</span><span lang="en">Read, track, keep going.<br>See how long you’ll still need for your book and keep your reading streak alive.</span></p>
       <div class="ctas">
         <a class="pill" href="./"><span lang="de">App öffnen</span><span lang="en">Open the app</span></a>
         <a class="pill sec" href="#install"><span lang="de">Installieren</span><span lang="en">Install</span></a>
@@ -98,51 +105,47 @@ footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
       <p class="note"><span lang="de">Kostenlos · ohne Konto · ohne Werbung · für Android und iPhone</span><span lang="en">Free · no account · no ads · for Android and iPhone</span></p>
     </div>
     <div class="duo">
-      <div class="phone" style="left:4%;top:30px;transform:rotate(-5deg)"><img src="shot-heute.jpg" alt="Startseite mit aktuellem Buch, Lesestreak und Jahresziel" loading="eager"></div>
+      <div class="phone" style="left:4%;top:30px;transform:rotate(-5deg)"><img src="shot-heute.jpg" alt="Startseite mit aktuellem Buch, Restzeit und Lesestreak" loading="eager"></div>
       <div class="phone" style="right:2%;top:0;transform:rotate(5deg)"><img src="shot-heute-nacht.jpg" alt="Startseite im Nachtmodus" loading="eager"></div>
     </div>
+  </div>
+
+  <div class="band core" style="margin-top:0">
+    <div class="grid4"><div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></div><h3 class="d"><span lang="de">Lesen & tracken</span><span lang="en">Read & track</span></h3><p><span lang="de">Ein Tipp startet die Lesezeit – oder du trägst einfach ein, wo du stehen geblieben bist.</span><span lang="en">One tap starts your reading time – or simply enter where you left off.</span></p></div><div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/></svg></div><h3 class="d"><span lang="de">Restzeit im Blick</span><span lang="en">Know what’s left</span></h3><p><span lang="de"><em>Reading Journal</em> kennt dein Lesetempo und zeigt, wie lange du für dein Buch noch brauchst.</span><span lang="en"><em>Reading Journal</em> learns your pace and shows how much longer you’ll need for your book.</span></p></div><div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.5 1 2.5 2 3 0-3-.5-5.5.5-8z"/></svg></div><h3 class="d"><span lang="de">Streaks & Ziele</span><span lang="en">Streaks & goals</span></h3><p><span lang="de">Tagesziel setzen, Serie aufbauen, dranbleiben.</span><span lang="en">Set a daily goal, build a streak, keep going.</span></p></div><div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H6a1 1 0 0 0-1 1v4h4v4l-2 2M19 7h-3a1 1 0 0 0-1 1v4h4v4l-2 2"/></svg></div><h3 class="d"><span lang="de">Zitate teilen</span><span lang="en">Share quotes</span></h3><p><span lang="de">Lieblingssätze als schöne Karte gestalten.</span><span lang="en">Turn favourite lines into beautiful cards.</span></p></div></div>
   </div>
 
   <section class="f">
     <div class="txt">
       <div class="kicker"><span lang="de">Timer & Klänge</span><span lang="en">Timer & sounds</span></div>
-      <h2 class="d"><span lang="de">Lesen starten. Einfach.</span><span lang="en">Start reading. That's it.</span></h2>
-      <p><span lang="de">Ein Tipp auf „Weiterlesen“ startet die Uhr. Der Timer läuft weiter, auch wenn du die App schließt, und zeigt, auf welcher Seite du ungefähr sein müsstest.</span><span lang="en">One tap on “Continue reading” starts the clock. It keeps running when you close the app and shows roughly which page you should be on.</span></p>
-      <p><span lang="de">Wer mag, liest zu sanften Klängen: Lagerfeuer, Nieselregen oder warmes Rauschen – live erzeugt, ohne Loop-Schnitt.</span><span lang="en">If you like, read to gentle sounds: campfire, drizzle or warm white noise – generated live, with no audible loop.</span></p>
+      <h2 class="d"><span lang="de">Lesen starten. Einfach.</span><span lang="en">Start reading. That’s it.</span></h2>
+      <p><span lang="de">Ein Tipp auf „Weiterlesen“, und die Uhr läuft – auch wenn du die App schließt. Nach dem Lesen trägst du nur noch ein, bis zu welcher Seite du gekommen bist.</span><span lang="en">Tap “Continue reading” and the clock starts – even if you close the app. Afterwards, just enter the page you reached.</span></p><p><span lang="de">Wer mag, liest zu sanften Klängen: Lagerfeuer, Nieselregen oder White Noise.</span><span lang="en">If you like, read to gentle sounds: campfire, drizzle or white noise.</span></p>
     </div>
     <div class="phone"><img src="shot-timer.jpg" alt="Laufender Timer mit Lagerfeuer-Klang" loading="eager"></div>
   </section>
 
   <section class="f">
     <div class="txt">
-      <div class="kicker"><span lang="de">Dein Tempo</span><span lang="en">Your pace</span></div>
-      <h2 class="d"><span lang="de">Uhr vergessen? Kein Problem.</span><span lang="en">Forgot the timer? No problem.</span></h2>
-      <p><span lang="de">Reading Journal lernt aus deinen gemessenen Sitzungen, wie viele Seiten pro Stunde du in <em>diesem</em> Buch liest.</span><span lang="en">Reading Journal learns from your timed sessions how many pages per hour you read in <em>this</em> book.</span></p>
-      <ul>
-        <li><span lang="de">Nur die Seite eintragen – die Lesezeit wird geschätzt. Weicht sie ab, korrigierst du sie mit dem Stift.</span><span lang="en">Just enter the page – reading time is estimated. If it's off, fix it with the pencil.</span></li>
-        <li><span lang="de">Nur die Zeit bekannt, etwa vom E-Reader? Dann rechnet die App die Seite im gedruckten Buch hoch.</span><span lang="en">Only know the time, e.g. from an e-reader? The app works out the matching page in your printed copy.</span></li>
-        <li><span lang="de">Geschätztes zählt für Fortschritt und Serie – aber nie für dein Tempo.</span><span lang="en">Estimates count for progress and streaks – never for your pace.</span></li>
-      </ul>
+      <div class="kicker"><span lang="de">Ohne Stoppuhr</span><span lang="en">No stopwatch needed</span></div>
+      <h2 class="d"><span lang="de">Keine Lust zu tracken?</span><span lang="en">Don’t feel like tracking?</span></h2>
+      <p><span lang="de">Dann lies einfach – aus Freude und zum Genuss, ohne Timer. Trag danach nur die Seite ein, und <em>Reading Journal</em> schätzt die Lesezeit anhand deines Lesetempos. Das geht auch andersherum: Zeit eintragen, Seiten schätzen lassen – so kannst du leichter zwischen gedrucktem Buch und E-Reader wechseln.</span><span lang="en">Then just read – for the joy and pleasure of it, no timer. Afterwards, enter your page and <em>Reading Journal</em> estimates the time from your reading pace. It works the other way round, too: enter the time and let the app estimate the pages – making it easy to switch between a printed book and an e-reader.</span></p><p><span lang="de">Dein Fortschritt bleibt aktuell, und du siehst jederzeit, wie lange du für dein Buch noch brauchst.</span><span lang="en">Your progress stays up to date, and you always know how much longer you’ll need for your book.</span></p>
     </div>
     <div class="phone"><img src="shot-eintragen.jpg" alt="Seiten eintragen mit geschätzter Lesezeit" loading="eager"></div>
   </section>
 
   <section class="f">
     <div class="txt">
-      <div class="kicker"><span lang="de">Lesestreak</span><span lang="en">Reading streak</span></div>
-      <h2 class="d"><span lang="de">Jeder Tag zählt – und wird gefeiert.</span><span lang="en">Every day counts – and gets celebrated.</span></h2>
-      <p><span lang="de">Lege dein Tagesziel in Minuten oder Seiten fest. Nach jedem Eintrag zeigt dir die App deine Serie – dezent am Anfang, mit Konfetti ab Tag 15 und richtig festlich ab Tag 30.</span><span lang="en">Set a daily goal in minutes or pages. After every entry the app shows your streak – subtle at first, with confetti from day 15 and a real celebration from day 30.</span></p>
-      <p><span lang="de">Dazu: dein Lesetempo pro Session und wie viele Bücher du in diesem Jahr gelesen hast.</span><span lang="en">Plus: your pace per session and how many books you've finished this year.</span></p>
+      <div class="kicker"><span lang="de">Ziele & Lesestreak</span><span lang="en">Goals & streaks</span></div>
+      <h2 class="d"><span lang="de">Dranbleiben – auch bei Pflichtlektüre.</span><span lang="en">Keep going – even with required reading.</span></h2>
+      <p><span lang="de">Setz dir ein Tagesziel in Minuten oder Seiten und sammle Lesetage in Folge. Gerade bei Büchern für Schule, Universität oder Beruf kann es helfen, am Ball zu bleiben und motiviert weiterzulesen.</span><span lang="en">Set a daily goal in minutes or pages and collect reading days in a row. Especially with books for school, university or work, it can help you stay on track and keep reading with motivation.</span></p><p><span lang="de">Deine Serie siehst du auf einen Blick – und jeder geschaffte Tag wird ein kleines bisschen gefeiert.</span><span lang="en">Your streak is always in view – and every day you make it gets a little celebration.</span></p>
     </div>
-    <div class="phone"><img src="shot-feier.jpg" alt="Feier-Screen: Tag 24 der Lese-Serie" loading="eager"></div>
+    <div class="phone"><img src="shot-feier.jpg" alt="Lesestreak: Tag 24" loading="eager"></div>
   </section>
 
   <section class="f">
     <div class="txt">
       <div class="kicker"><span lang="de">Zitatkarten</span><span lang="en">Quote cards</span></div>
       <h2 class="d"><span lang="de">Sätze, die bleiben.</span><span lang="en">Sentences that stay.</span></h2>
-      <p><span lang="de">Halte Zitate während des Lesens fest und gestalte daraus Karten: 13 sorgfältig gewählte Schriften von Fraunces bis zur kalligrafischen Schreibschrift, stufenlose Dicke, kursiv oder aufrecht, fünf Farben, drei Formate.</span><span lang="en">Save quotes while you read and turn them into cards: 13 carefully chosen typefaces from Fraunces to calligraphic script, adjustable weight, italic or upright, five colours, three formats.</span></p>
-      <p><span lang="de">Als Bild teilen – für Story, Status oder einfach fürs Fotoalbum.</span><span lang="en">Share as an image – for stories, chats or your photo library.</span></p>
+      <p><span lang="de">Halte Lieblingsstellen fest und gestalte daraus Karten zum Teilen: mit schönen typografischen Schriften – von kalligrafisch bis klar und modern –, in eigener Dicke, Farbe und Format.</span><span lang="en">Save favourite passages and turn them into shareable cards: beautiful typefaces from calligraphic to clean and modern, with your choice of weight, colour and format.</span></p>
     </div>
     <div class="phone"><img src="shot-zitat.jpg" alt="Zitatkarte gestalten" loading="eager"></div>
   </section>
@@ -151,7 +154,7 @@ footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
     <div class="txt">
       <div class="kicker"><span lang="de">Nachtmodus & Statistik</span><span lang="en">Night mode & stats</span></div>
       <h2 class="d"><span lang="de">Für die Lesestunde im Bett.</span><span lang="en">Made for reading in bed.</span></h2>
-      <p><span lang="de">Ein warmer Nachtmodus statt kaltem Blaulicht – automatisch oder per Hand. Die Statistik zeigt Minuten pro Tag, deinen Lesekalender, deine längste Serie und dein Tempo pro Buch.</span><span lang="en">A warm night mode instead of cold blue light – automatic or manual. Stats show minutes per day, your reading calendar, your longest streak and your pace per book.</span></p>
+      <p><span lang="de">Ein warmer Nachtmodus für abends, dazu eine Statistik mit Lesekalender, Lesezeit und deinem Tempo pro Buch.</span><span lang="en">A warm night mode for the evening, plus stats with your reading calendar, reading time and pace per book.</span></p>
     </div>
     <div class="phone"><img src="shot-statistik-nacht.jpg" alt="Statistik im Nachtmodus" loading="eager"></div>
   </section>
@@ -161,9 +164,9 @@ footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
     <h2 class="d"><span lang="de">Deine Daten gehören dir.</span><span lang="en">Your data is yours.</span></h2>
     <div class="grid3">
       <div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-        <h3 class="d"><span lang="de">Kein Konto</span><span lang="en">No account</span></h3><p><span lang="de">Alles liegt nur auf deinem Gerät. Kein Server, kein Tracking, keine Werbung.</span><span lang="en">Everything stays on your device. No server, no tracking, no ads.</span></p></div>
+        <h3 class="d"><span lang="de">Kein Konto</span><span lang="en">No account</span></h3><p><span lang="de">Alles liegt nur auf deinem Gerät. Kein Server, keine Datenweitergabe, keine Werbung.</span><span lang="en">Everything stays on your device. No server, no data sharing, no ads.</span></p></div>
       <div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg></div>
-        <h3 class="d"><span lang="de">Bücher per Scan</span><span lang="en">Scan your books</span></h3><p><span lang="de">Strichcode scannen, ISBN tippen oder Titel suchen – Daten und Cover kommen von Open Library und Google Books.</span><span lang="en">Scan the barcode, type the ISBN or search by title – data and covers come from Open Library and Google Books.</span></p></div>
+        <h3 class="d"><span lang="de">Bücher per Scan</span><span lang="en">Scan your books</span></h3><p><span lang="de">Strichcode scannen, ISBN tippen oder nach dem Buch suchen – Titel, Autor und Cover kommen automatisch.</span><span lang="en">Scan the barcode, type the ISBN or search for the book – title, author and cover are filled in for you.</span></p></div>
       <div><div class="ic"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/></svg></div>
         <h3 class="d"><span lang="de">Sicherung</span><span lang="en">Backups</span></h3><p><span lang="de">Mit einem Tipp nach Google Drive oder iCloud sichern – die App erinnert dich freundlich daran.</span><span lang="en">Back up to Google Drive or iCloud with one tap – the app gently reminds you.</span></p></div>
     </div>
@@ -172,7 +175,7 @@ footer{padding:40px 0 60px;color:var(--mu);font-size:16px;text-align:center}
   <div class="band" id="install">
     <div class="kicker"><span lang="de">Installation</span><span lang="en">Installation</span></div>
     <h2 class="d"><span lang="de">In einer Minute auf dem Startbildschirm.</span><span lang="en">On your home screen in a minute.</span></h2>
-    <p style="max-width:620px;margin:0"><span lang="de">Reading Journal ist eine Web-App: kein App Store nötig. Einmal hinzugefügt, startet sie im Vollbild und funktioniert auch offline.</span><span lang="en">Reading Journal is a web app – no app store needed. Once added, it opens full-screen and works offline.</span></p>
+    <p style="max-width:620px;margin:0"><span lang="de"><em>Reading Journal</em> ist eine Web-App: kein App Store nötig. Einmal hinzugefügt, startet sie im Vollbild und funktioniert auch offline.</span><span lang="en"><em>Reading Journal</em> is a web app – no app store needed. Once added, it opens full-screen and works offline.</span></p>
     <div class="steps">
       <div class="step"><h3 class="d">Android · Chrome</h3><ol>
         <li><span lang="de"><a href="./">App öffnen</a></span><span lang="en"><a href="./">Open the app</a></span></li>
