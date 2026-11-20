@@ -18,6 +18,9 @@
   - 13 typefaces, adjustable weight, italic or upright
   - five colours, three formats
   - share as an image
+- **Ratings & year in review**
+  - rate finished books with half stars
+  - share your reading year as an image (story or square)
 - **Focus sounds** – campfire, drizzle and warm white noise, generated live
 - **Night mode, statistics and backups** – export to Google Drive or iCloud
 

@@ -123,10 +123,21 @@ input[type=range]{accent-color:var(--ac)}
 .sndmenu button.opt{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:0 12px;border:none;border-radius:18px;background:transparent;text-align:left;font-family:var(--D);font-variation-settings:'SOFT' 100;font-size:16px}
 .sndmenu button.opt[aria-pressed=true]{background:var(--soft)}
 .sndmenu button.opt .ck{margin-left:auto;color:var(--ac)}
+
+.stars{display:inline-flex;gap:4px;vertical-align:middle}
+.star{position:relative;display:inline-block;flex-shrink:0}
+.star svg{position:absolute;left:0;top:0}
+.star .fill{position:absolute;left:0;top:0;bottom:0;overflow:hidden}
+.star button{position:absolute;top:-6px;bottom:-6px;width:50%;border:none;background:transparent;padding:0;cursor:pointer}
+.star button.l{left:0}.star button.r{right:0}
+.fxstats{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-self:stretch;margin:12px 0 6px}
+.fxstats div{background:var(--bg);border-radius:18px;padding:10px 12px;text-align:center}
+.fxstats b{display:block;font-family:var(--D);font-variation-settings:'SOFT' 100;font-weight:500;font-size:22px;color:var(--ink)}
+.fxstats span{font-size:13px;color:var(--mu)}
 /* Feier-Screen */
 #fx{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--scrim);animation:fade .25s}
 #fx canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
-.fxcard{position:relative;width:min(360px,100%);background:var(--card);border-radius:36px;box-shadow:var(--shadow);padding:34px 26px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+.fxcard{position:relative;width:min(360px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--card);border-radius:36px;box-shadow:var(--shadow);padding:34px 26px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
 .fxflame{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:8px;position:relative}
 .fxflame::before,.fxflame::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--ac);opacity:0}
 .lv2 .fxflame::before,.lv3 .fxflame::before{animation:ring 1.8s ease-out infinite}
@@ -448,13 +459,13 @@ function sessRow(s, showBook){
   </button>`;
 }
 function shelf(){
-  const groups = [['reading','Lese ich gerade'],['want','Möchte ich lesen'],['done','Gelesen']];
+  const groups = [['reading','Lese ich gerade'],['want','Möchte ich lesen'],['done','Gelesen'],['abandoned','Abgebrochen']];
   const any = S.books.length;
   return `${blob(190, -60, 280, .7)}
   <div class="stack">
     <div class="row rel" style="justify-content:space-between"><h1 class="d">Regal</h1><button class="pill sm" data-act="add">${ic('plus',18)} Buch</button></div>
     ${!any ? `<div class="card empty rel"><div class="d" style="font-size:22px">Noch leer hier.</div><p class="mu">Füge dein erstes Buch per Scan, ISBN oder Titelsuche hinzu.</p><button class="pill" data-act="add">${ic('scan',20)} Buch hinzufügen</button></div>` : ''}
-    ${groups.map(([g,l]) => { const bs = S.books.filter(b => b.status === g); if (!bs.length) return ''; return `<div class="card rel"><div class="label" style="margin-bottom:4px">${l}</div>${bs.map(b => { const cp = curPage(b); return `<button class="bookrow" data-act="book" data-id="${b.id}">${coverHTML(b, 50, 74)}<span style="flex:1;min-width:0"><span class="d" style="font-size:18px;display:block">${esc(b.title)}</span><span class="it mu" style="font-size:15px">${esc(b.author||'')}</span>${b.pages && g==='reading' ? `<span class="bar" style="display:block;margin-top:8px;height:6px"><i style="width:${Math.min(100,cp/b.pages*100)}%"></i></span>`:''}</span></button>`; }).join('')}</div>`; }).join('')}
+    ${groups.map(([g,l]) => { const bs = S.books.filter(b => b.status === g); if (!bs.length) return ''; return `<div class="card rel"><div class="label" style="margin-bottom:4px">${l}</div>${bs.map(b => { const cp = curPage(b); return `<button class="bookrow" data-act="book" data-id="${b.id}">${coverHTML(b, 50, 74)}<span style="flex:1;min-width:0"><span class="d" style="font-size:18px;display:block">${esc(b.title)}</span><span class="it mu" style="font-size:15px">${esc(b.author||'')}</span>${g==='done' && b.rating ? `<span style="display:block;margin-top:4px">${starsHTML(b.rating, 16)}</span>` : ''}${b.pages && g==='reading' ? `<span class="bar" style="display:block;margin-top:8px;height:6px"><i style="width:${Math.min(100,cp/b.pages*100)}%"></i></span>`:''}</span></button>`; }).join('')}</div>`; }).join('')}
   </div>`;
 }
 function stats(){
@@ -474,6 +485,11 @@ function stats(){
   return `${blob(-80, -40, 260, .6)}
   <div class="stack">
     <h1 class="d rel">Statistik</h1>
+    <button class="card rel row" data-act="review" style="border:none;width:100%;text-align:left;gap:14px;padding:16px 20px">
+      <span style="width:48px;height:48px;border-radius:50%;background:var(--ac);color:#FBF7F0;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('image',22)}</span>
+      <span style="flex:1"><span class="d" style="font-size:19px;display:block">Mein Lesejahr ${new Date().getFullYear()}</span><span class="label">Jahresrückblick als Bild teilen</span></span>
+      ${ic('share',20)}
+    </button>
     <div class="rel" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       ${tile(fmtMin(w.m), 'diese 7 Tage')}${tile(w.p + ' S.', 'Seiten, 7 Tage')}${tile(fmtMin(mo.m), 'letzte 30 Tage')}${tile(maxStreak + ' Tage', 'längste Serie')}
     </div>
@@ -598,7 +614,7 @@ const SHEETS = {
   },
   edit(){
     const d = sheet.draft;
-    const st = [['reading','Lese ich'],['want','Möchte ich lesen'],['done','Gelesen']];
+    const st = [['reading','Lese ich'],['want','Möchte ich lesen'],['done','Gelesen'],['abandoned','Abgebrochen']];
     return `<div class="full" role="dialog" aria-modal="true" aria-labelledby="edT"><div class="inner stack" style="gap:14px">
       ${blob(130, -60, 320, .8)}
       <div class="row rel" style="justify-content:space-between">
@@ -621,7 +637,7 @@ const SHEETS = {
         <div class="row" style="gap:8px;align-items:stretch">${fld('publisher','Verlag',d.publisher)}${fld('year','Jahr',d.year)}</div>
         ${fld('isbn','ISBN',d.isbn)}
       </div>
-      <div class="seg rel" role="group" aria-label="Status" style="background:var(--card)">${st.map(([k,l]) => `<button data-act="status" data-v="${k}" aria-pressed="${d.status===k}">${l}</button>`).join('')}</div>
+      <div class="seg rel" role="group" aria-label="Status" style="background:var(--card);display:grid;grid-template-columns:1fr 1fr">${st.map(([k,l]) => `<button data-act="status" data-v="${k}" aria-pressed="${d.status===k}">${l}</button>`).join('')}</div>
       <div class="label rel" style="text-align:center">Deine Ausgabe hat andere Seitenzahlen? Einfach ändern – Fortschritt und Restzeit rechnen damit.</div>
       <button class="pill rel" data-act="saveBook" style="height:58px">${ic('book',20)} ${sheet.isNew ? 'Ins Regal stellen' : 'Speichern'}</button>
       ${!sheet.isNew ? `<button class="link rel" data-act="delBook" style="align-self:center">${sheet.confirmDel ? 'Wirklich löschen? Nochmal tippen' : 'Buch löschen'}</button>` : ''}
@@ -637,7 +653,7 @@ const SHEETS = {
         <button class="rb card-bg s48" data-act="close" aria-label="Zurück">${ic('back')}</button>
         <button class="rb card-bg s48" data-act="edit" data-id="${b.id}" aria-label="Bearbeiten">${ic('pencil',20)}</button>
       </div>
-      <div class="row rel" style="gap:18px">${coverHTML(b, 100, 148, -3)}<div><div class="d" style="font-size:26px;line-height:1.1">${esc(b.title)}</div><div class="it mu">${esc(b.author||'')}</div><div class="label" style="margin-top:8px">${[b.publisher,b.year].filter(Boolean).map(esc).join(' · ')}</div></div></div>
+      <div class="row rel" style="gap:18px">${coverHTML(b, 100, 148, -3)}<div><div class="d" style="font-size:26px;line-height:1.1">${esc(b.title)}</div><div class="it mu">${esc(b.author||'')}</div>${b.status === 'done' ? `<div style="margin-top:8px">${starsHTML(b.rating || 0, 26, 'rateBook')}</div>` : ''}${b.status === 'abandoned' ? `<div class="label" style="margin-top:6px">abgebrochen</div>` : ''}<div class="label" style="margin-top:8px">${[b.publisher,b.year].filter(Boolean).map(esc).join(' · ')}</div></div></div>
       <div class="rel" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         ${[[`${cp}${b.pages?'/'+b.pages:''}`,'Seite'],[p.src==='book'?Math.round(p.pace):'–','Seiten/h'],[fmtMin(totMin),'gelesen']].map(([v,l]) => `<div class="card" style="padding:14px;text-align:center"><div class="d" style="font-size:20px">${v}</div><div class="label">${l}</div></div>`).join('')}
       </div>
@@ -717,6 +733,27 @@ const SHEETS = {
         </div>
         <button class="pill" data-act="saveQuote">${ic('check',20)} Speichern</button>
       </div></div>`;
+  },
+
+  review(){
+    const r = sheet, years = reviewYears();
+    if (!r.year) r.year = years[0]; if (!r.fmt) r.fmt = 'story';
+    if (!r.url && !r.busy) { r.busy = true; buildReview(r.year, r.fmt).then(res => { if (sheet !== r) return; r.busy = false; r.url = res.url; r.blob = res.blob; r.missing = res.missing; renderLayer(); }).catch(() => { r.busy = false; r.err = true; renderLayer(); }); }
+    const ratio = r.fmt === 'story' ? '9 / 16' : '1 / 1';
+    return `<div class="full" role="dialog" aria-modal="true" aria-label="Jahresrückblick"><div class="inner stack" style="gap:14px">
+      <div class="row" style="justify-content:space-between">
+        <button class="rb card-bg s48" data-act="close" aria-label="Zurück">${ic('back')}</button>
+        <span class="d" style="font-size:19px">Jahresrückblick</span>
+        <button class="rb s48" style="background:var(--ink);color:var(--onInk)" data-act="shareReview" aria-label="Bild teilen oder sichern" ${r.blob ? '' : 'disabled'}>${ic('share',20)}</button>
+      </div>
+      ${years.length > 1 ? `<div class="seg" role="group" aria-label="Jahr">${years.map(y => `<button data-act="revYear" data-v="${y}" aria-pressed="${r.year === y}">${y}</button>`).join('')}</div>` : ''}
+      <div class="seg" role="group" aria-label="Format"><button data-act="revFmt" data-v="story" aria-pressed="${r.fmt === 'story'}">Hochformat</button><button data-act="revFmt" data-v="square" aria-pressed="${r.fmt === 'square'}">Quadrat 1:1</button></div>
+      <div style="align-self:center;width:${r.fmt === 'story' ? 'min(300px,72vw)' : 'min(340px,86vw)'};aspect-ratio:${ratio};border-radius:22px;overflow:hidden;box-shadow:var(--shadow);background:var(--card);display:flex;align-items:center;justify-content:center">
+        ${r.url ? `<img src="${r.url}" alt="Jahresrückblick ${r.year}" style="width:100%;height:100%;display:block">` : `<span class="label">${r.err ? 'Das Bild konnte nicht erstellt werden.' : 'Wird gestaltet …'}</span>`}
+      </div>
+      ${r.missing ? `<div class="label" style="text-align:center">${r.missing} ${r.missing === 1 ? 'Cover konnte' : 'Cover konnten'} nicht geladen werden und ${r.missing === 1 ? 'wird' : 'werden'} als gezeichnetes Cover gezeigt.</div>` : ''}
+      <button class="pill" data-act="shareReview" ${r.blob ? '' : 'disabled'}>${ic('share',20)} Teilen oder sichern</button>
+    </div></div>`;
   },
   card(){
     ensureCardFonts();
@@ -957,6 +994,63 @@ function saveByTime(){
   save(); close();
   celebrate({ pages: to - from, min, est:'pages', wasMet, bookDone:false, title: b.title, bookId: b.id, toPage: to });
 }
+
+/* ---------------- Sterne (mit Halbsternen) ---------------- */
+const STAR = 'M12 2.8l2.75 5.9 6.45.75-4.8 4.4 1.3 6.35L12 17.05 6.3 20.2l1.3-6.35-4.8-4.4 6.45-.75z';
+function starsHTML(v, size = 22, act = null){
+  v = +v || 0;
+  return `<span class="stars" role="${act ? 'group' : 'img'}" aria-label="${v ? String(v).replace('.', ',') + ' von 5 Sternen' : 'nicht bewertet'}">` + [1,2,3,4,5].map(i => {
+    const f = v >= i ? 100 : v >= i - .5 ? 50 : 0;
+    const svg = (fill) => `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24"><path d="${STAR}" fill="${fill ? 'var(--ac)' : 'none'}" stroke="var(--ac)" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+    return `<span class="star" style="width:${size}px;height:${size}px">${svg(false)}<span class="fill" style="width:${f}%">${svg(true)}</span>` +
+      (act ? `<button class="l" data-act="${act}" data-v="${i - .5}" aria-label="${String(i - .5).replace('.', ',')} Sterne"></button><button class="r" data-act="${act}" data-v="${i}" aria-label="${i} ${i === 1 ? 'Stern' : 'Sterne'}"></button>` : '') + `</span>`;
+  }).join('') + `</span>`;
+}
+
+/* ---------------- Glückwunsch-Screen beim Beenden eines Buchs ---------------- */
+function bookRank(b){
+  const y = new Date(finishedAt(b)).getFullYear();
+  const done = S.books.filter(x => x.status === 'done' && new Date(finishedAt(x)).getFullYear() === y).sort((a, c) => finishedAt(a) < finishedAt(c) ? -1 : 1);
+  return { n: done.findIndex(x => x.id === b.id) + 1, y };
+}
+function finishSplash(b){
+  const ss = sessOf(b.id), min = ss.reduce((a, s) => a + s.min, 0), p = pace(b.id);
+  const days = new Set(ss.map(s => dkey(s.date))).size;
+  const { n, y } = bookRank(b), st = streak();
+  const fx = document.createElement('div'); fx.id = 'fx'; fx.setAttribute('role', 'dialog'); fx.setAttribute('aria-modal', 'true'); fx.setAttribute('aria-label', 'Buch ausgelesen');
+  const draw = () => `<canvas aria-hidden="true"></canvas>
+    <div class="fxcard lv2" style="padding-top:28px">
+      <div style="margin-bottom:6px">${coverHTML(b, 92, 136, -3)}</div>
+      <div class="d" style="font-size:30px;line-height:1.1;margin-top:8px">Glückwunsch!</div>
+      <div style="font-size:17px;line-height:1.4;max-width:290px">„${esc(b.title)}“ ist dein <b class="d" style="color:var(--ac);font-size:19px">${n}.</b> Buch im Jahr ${y}.</div>
+      <div class="fxstats">
+        <div><b>${fmtMin(min)}</b><span>Lesezeit</span></div>
+        <div><b>${ss.length}</b><span>${ss.length === 1 ? 'Sitzung' : 'Sitzungen'}</span></div>
+        <div><b>${days}</b><span>Lesetage</span></div>
+        <div><b>${p.src === 'book' ? Math.round(p.pace) : (b.pages || '–')}</b><span>${p.src === 'book' ? 'Seiten pro Stunde' : 'Seiten'}</span></div>
+      </div>
+      <div class="d" style="font-size:18px;margin-top:6px">Wie hat es dir gefallen?</div>
+      <div id="fxStars" style="margin:4px 0 2px">${starsHTML(b.rating || 0, 40, 'rateFx')}</div>
+      <div class="label" id="fxRateLbl" style="min-height:20px">${b.rating ? String(b.rating).replace('.', ',') + ' von 5 Sternen' : 'Tippe auf die Sterne – auch halbe gehen.'}</div>
+      ${st.todayMet ? `<div class="row" style="gap:6px;justify-content:center;color:var(--ac);font-size:15px;margin-top:4px">${ic('flame',16)} Tag ${st.n} deiner Lese-Serie</div>` : ''}
+      <button class="pill" data-fxclose style="align-self:stretch;margin-top:12px">${b.rating ? 'Fertig' : 'Später bewerten'}</button>
+    </div>`;
+  fx.innerHTML = draw();
+  document.body.appendChild(fx);
+  fx.addEventListener('click', e => {
+    const r = e.target.closest('[data-act="rateFx"]');
+    if (r){   // nur Sterne, Text und Knopf aktualisieren – der Screen bleibt ruhig stehen
+      b.rating = +r.dataset.v; save();
+      fx.querySelector('#fxStars').innerHTML = starsHTML(b.rating, 40, 'rateFx');
+      fx.querySelector('#fxRateLbl').textContent = String(b.rating).replace('.', ',') + ' von 5 Sternen';
+      fx.querySelector('[data-fxclose]').textContent = 'Fertig';
+      return;
+    }
+    if (e.target === fx || e.target.closest('[data-fxclose]')){ fx.remove(); stopConfetti(); render(); }
+  });
+  confetti(fx.querySelector('canvas'), n >= 10 ? 3 : 2);
+}
+
 /* ---------------- Feier-Screen nach dem Eintragen ---------------- */
 const MILESTONES = { 7:'Eine ganze Woche!', 14:'Zwei Wochen am Stück!', 21:'Drei Wochen – das ist eine Gewohnheit.', 30:'Ein ganzer Monat!', 50:'Fünfzig Tage!', 60:'Zwei Monate!', 100:'Hundert Tage! Unglaublich.', 150:'150 Tage!', 200:'200 Tage!', 365:'Ein ganzes Jahr!' };
 function celebrate({ pages, min, est, wasMet, bookDone, title, bookId, toPage }){
@@ -1134,6 +1228,160 @@ function soundButton(){
     ${menu}</div>`;
 }
 
+
+/* ---------------- Jahresrückblick (Canvas) ---------------- */
+const REVIEW_URL = 'robert-wlr.github.io/Reading-Journal';
+function reviewYears(){
+  const ys = new Set([new Date().getFullYear()]);
+  S.sessions.forEach(s => ys.add(new Date(s.date).getFullYear()));
+  S.books.filter(b => b.status === 'done').forEach(b => ys.add(new Date(finishedAt(b)).getFullYear()));
+  return [...ys].sort((a, b) => b - a).slice(0, 4);
+}
+function yearData(y){
+  const ss = S.sessions.filter(s => new Date(s.date).getFullYear() === y);
+  const done = S.books.filter(b => b.status === 'done' && new Date(finishedAt(b)).getFullYear() === y).sort((a, c) => finishedAt(a) < finishedAt(c) ? -1 : 1);
+  const m = ss.filter(s => !s.est && s.min >= 5 && pages(s) > 0), mp = m.reduce((a, s) => a + pages(s), 0), mm = m.reduce((a, s) => a + s.min, 0);
+  const rated = done.filter(b => b.rating).sort((a, c) => c.rating - a.rating || (finishedAt(c) > finishedAt(a) ? 1 : -1));
+  return { y, done, pages: ss.reduce((a, s) => a + pages(s), 0), min: ss.reduce((a, s) => a + s.min, 0), sessions: ss.length,
+           days: new Set(ss.map(s => dkey(s.date))).size, pace: mm ? Math.round(mp / mm * 60) : 0,
+           top: (rated.length ? rated : done.slice().reverse()).slice(0, 3), rated: rated.length > 0 };
+}
+function loadImg(src, ms = 5000){
+  return new Promise(res => {
+    if (!src) return res(null);
+    const im = new Image(); let done = false; const fin = v => { if (!done){ done = true; res(v); } };
+    if (!src.startsWith('data:')) im.crossOrigin = 'anonymous';
+    im.onload = () => fin(im); im.onerror = () => fin(null); setTimeout(() => fin(null), ms); im.src = src;
+  });
+}
+function rr(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function fitText(ctx, text, maxW){ if (ctx.measureText(text).width <= maxW) return text; while (text.length > 1 && ctx.measureText(text + '…').width > maxW) text = text.slice(0, -1); return text + '…'; }
+function drawCover(ctx, b, img, x, y, w, h, rot = 0){
+  ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(rot * Math.PI / 180); ctx.translate(-w / 2, -h / 2);
+  ctx.shadowColor = 'rgba(42,35,28,.28)'; ctx.shadowBlur = w * .14; ctx.shadowOffsetY = w * .06;
+  const r = Math.max(4, w * .05); rr(ctx, 0, 0, w, h, r);
+  const hue = [...(b.title || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % 4;
+  ctx.fillStyle = ['#3E5A48', '#7A3B2A', '#36475E', '#6A5A3A'][hue]; ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.save(); rr(ctx, 0, 0, w, h, r); ctx.clip();
+  if (img){ const s = Math.max(w / img.width, h / img.height); ctx.drawImage(img, (w - img.width * s) / 2, (h - img.height * s) / 2, img.width * s, img.height * s); }
+  else {
+    ctx.fillStyle = '#F3ECE0'; const fs = Math.max(12, w * .13); ctx.font = `600 ${fs}px Fraunces, Georgia, serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    const words = (b.title || '').split(/\s+/); let line = '', ly = h * .08; const lines = [];
+    words.forEach(wd => { const t = line ? line + ' ' + wd : wd; if (ctx.measureText(t).width > w * .84 && line){ lines.push(line); line = wd; } else line = t; }); if (line) lines.push(line);
+    lines.slice(0, 4).forEach(l => { ctx.fillText(fitText(ctx, l, w * .84), w * .08, ly); ly += fs * 1.1; });
+    ctx.globalAlpha = .85; ctx.font = `italic 400 ${fs * .7}px Newsreader, Georgia, serif`; ctx.textBaseline = 'bottom'; ctx.fillText(fitText(ctx, b.author || '', w * .84), w * .08, h - h * .06); ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.fillRect(0, 0, Math.max(3, w * .035), h);
+  ctx.restore(); ctx.restore();
+}
+function drawStars(ctx, v, x, y, size, color){
+  const p = new Path2D(STAR), sc = size / 24;
+  for (let i = 0; i < 5; i++){
+    ctx.save(); ctx.translate(x + i * size * 1.12, y); ctx.scale(sc, sc);
+    ctx.lineWidth = 1.6; ctx.strokeStyle = color; ctx.lineJoin = 'round'; ctx.stroke(p);
+    const f = v >= i + 1 ? 1 : v >= i + .5 ? .5 : 0;
+    if (f){ ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 24 * f, 24); ctx.clip(); ctx.fillStyle = color; ctx.fill(p); ctx.restore(); }
+    ctx.restore();
+  }
+}
+const fmtH = m => { const h = m / 60; return h < 10 ? (Math.round(h * 10) / 10).toLocaleString('de-DE') : Math.round(h).toLocaleString('de-DE'); };
+async function buildReview(y, fmt){
+  try { await Promise.all(['500 80px Fraunces', '600 80px Fraunces', 'italic 400 40px Newsreader', '400 40px Newsreader'].map(f => document.fonts.load(f))); } catch(e){}
+  const D = yearData(y), story = fmt === 'story', W = 1080, H = story ? 1920 : 1080;
+  const covers = story ? D.done.slice(-7) : [];
+  const want = [...new Set([...D.top, ...covers])];
+  const imgs = new Map(); let missing = 0;
+  await Promise.all(want.map(async b => { const im = await loadImg(b.cover); if (b.cover && !im) missing++; imgs.set(b.id, im); }));
+  const icon = await loadImg('icon-192.png', 2500);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
+  const C = { bg:'#F3ECE0', card:'#FBF7F0', ink:'#2A231C', mu:'#6B6053', ac:'#A7442A', blob:'#E8D3BE', blob2:'#DCC4A8' };
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const blobAt = (cx, cy, sz, col, rot, a = 1) => { ctx.save(); ctx.globalAlpha = a; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(sz / 200, sz / 200); ctx.fillStyle = col; ctx.fill(new Path2D(BLOB)); ctx.restore(); };
+  const P = 80;
+  // Kopf: App-Name prominent
+  const head = (y0, isz, fs) => {
+    if (icon){ ctx.save(); rr(ctx, P, y0, isz, isz, isz * .24); ctx.clip(); ctx.drawImage(icon, P, y0, isz, isz); ctx.restore(); }
+    ctx.fillStyle = C.ink; ctx.font = `500 ${fs}px Fraunces, Georgia, serif`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillText('Reading Journal', icon ? P + isz + 24 : P, y0 + isz / 2 + 2);
+  };
+  const foot = () => { ctx.fillStyle = C.mu; ctx.globalAlpha = .75; ctx.font = `400 26px Newsreader, Georgia, serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(REVIEW_URL, W / 2, H - 52); ctx.globalAlpha = 1; };
+  const statCard = (x, y0, w, h, val, lab, fs) => {
+    ctx.save(); ctx.shadowColor = 'rgba(84,60,30,.10)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 8; rr(ctx, x, y0, w, h, 34); ctx.fillStyle = C.card; ctx.fill(); ctx.restore();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = C.ac; ctx.font = `500 ${fs}px Fraunces, Georgia, serif`; ctx.fillText(val, x + w / 2, y0 + h * .56);
+    ctx.fillStyle = C.mu; ctx.font = `italic 400 30px Newsreader, Georgia, serif`; ctx.fillText(lab, x + w / 2, y0 + h * .82);
+  };
+  const sub = `${D.sessions} Sitzungen · ${D.days} Lesetage${D.pace ? ` · Ø ${D.pace} Seiten pro Stunde` : ''}`;
+  if (story){
+    blobAt(860, 330, 900, C.blob, .3); blobAt(140, 1560, 560, C.blob2, 3.2, .6);
+    head(96, 84, 60);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = C.mu; ctx.font = `italic 400 58px Newsreader, Georgia, serif`; ctx.fillText('Mein Lesejahr', P, 330);
+    ctx.fillStyle = C.ac; ctx.font = `500 230px Fraunces, Georgia, serif`; ctx.fillText(String(y), P - 8, 530);
+    const cw = (W - 2 * P - 2 * 28) / 3;
+    statCard(P, 590, cw, 230, String(D.done.length), D.done.length === 1 ? 'Buch' : 'Bücher', 104);
+    statCard(P + cw + 28, 590, cw, 230, D.pages.toLocaleString('de-DE'), 'Seiten', D.pages >= 10000 ? 74 : 92);
+    statCard(P + 2 * (cw + 28), 590, cw, 230, fmtH(D.min), 'Stunden', 104);
+    ctx.fillStyle = C.mu; ctx.font = `400 30px Newsreader, Georgia, serif`; ctx.textAlign = 'center'; ctx.fillText(sub, W / 2, 890);
+    ctx.textAlign = 'left'; ctx.fillStyle = C.ink; ctx.font = `500 48px Fraunces, Georgia, serif`;
+    if (D.top.length){
+      ctx.fillText(D.rated ? 'Meine Lieblingsbücher' : 'Zuletzt ausgelesen', P, 1000);
+      const n = D.top.length, cwid = 250, chei = 375, gap = n > 1 ? Math.min(90, (W - 2 * P - n * cwid) / (n - 1)) : 0, x0 = (W - (n * cwid + (n - 1) * gap)) / 2;
+      D.top.forEach((b, i) => {
+        const x = x0 + i * (cwid + gap); drawCover(ctx, b, imgs.get(b.id), x, 1045, cwid, chei, [-3, 1.5, -1.5][i]);
+        if (b.rating){ const sz = 38; drawStars(ctx, b.rating, x + (cwid - sz * 5.48) / 2, 1450, sz, C.ac); }
+        ctx.fillStyle = C.ink; ctx.font = `italic 400 28px Newsreader, Georgia, serif`; ctx.textAlign = 'center';
+        ctx.fillText(fitText(ctx, b.title, cwid + 40), x + cwid / 2, b.rating ? 1530 : 1475); ctx.textAlign = 'left';
+      });
+    } else {
+      ctx.fillStyle = C.mu; ctx.font = `italic 400 40px Newsreader, Georgia, serif`; ctx.textAlign = 'center';
+      ctx.fillText('Das erste Buch des Jahres wartet schon.', W / 2, 1250);
+    }
+    if (D.done.length > D.top.length || (!D.rated && D.done.length > 3)){
+      const shown = D.done.slice(-7), more = D.done.length - shown.length;
+      ctx.fillStyle = C.ink; ctx.font = `500 40px Fraunces, Georgia, serif`; ctx.textAlign = 'left';
+      ctx.fillText(`Alle ${D.done.length} Bücher`, P, 1630);
+      const sw = 104, sh = 156, sg = (W - 2 * P - 7 * sw) / 6;
+      shown.forEach((b, i) => drawCover(ctx, b, imgs.get(b.id), P + i * (sw + sg), 1665, sw, sh, 0));
+      if (more > 0){ ctx.fillStyle = C.mu; ctx.font = `italic 400 30px Newsreader, Georgia, serif`; ctx.textAlign = 'right'; ctx.fillText(`und ${more} weitere`, W - P, 1630); }
+    }
+    foot();
+  } else {
+    blobAt(800, 520, 820, C.blob, .3); blobAt(120, 930, 420, C.blob2, 3.2, .6);
+    head(70, 70, 52);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = C.mu; ctx.font = `italic 400 44px Newsreader, Georgia, serif`; ctx.fillText('Mein Lesejahr', P, 250);
+    ctx.fillStyle = C.ac; ctx.font = `500 170px Fraunces, Georgia, serif`; ctx.fillText(String(y), P - 6, 400);
+    const rows = [[String(D.done.length), D.done.length === 1 ? 'Buch gelesen' : 'Bücher gelesen'], [D.pages.toLocaleString('de-DE'), 'Seiten'], [fmtH(D.min), 'Stunden Lesezeit']];
+    rows.forEach(([v, l], i) => {
+      const yy = 530 + i * 118; ctx.fillStyle = C.ink; ctx.font = `500 84px Fraunces, Georgia, serif`; ctx.textAlign = 'left'; ctx.fillText(v, P, yy);
+      const vw = ctx.measureText(v).width; ctx.fillStyle = C.mu; ctx.font = `italic 400 34px Newsreader, Georgia, serif`; ctx.fillText(l, P + vw + 18, yy);
+    });
+    ctx.fillStyle = C.mu; ctx.font = `400 26px Newsreader, Georgia, serif`; ctx.fillText(`${D.sessions} Sitzungen · ${D.days} Lesetage`, P, 900);
+    if (D.top.length){
+      const cx = 790, cwid = 230, chei = 345, rots = [-9, 0, 9], offs = D.top.length === 1 ? [0] : D.top.length === 2 ? [-70, 70] : [-130, 0, 130];
+      const order = D.top.length === 3 ? [1, 2, 0] : D.top.map((_, i) => i);   // Platz 1 in der Mitte, oben
+      const posOf = i => D.top.length === 3 ? [1, 0, 2][i] : i;
+      [...D.top.keys()].sort((a, b) => (a === 0) - (b === 0)).forEach(i => {
+        const k = posOf(i); drawCover(ctx, D.top[i], imgs.get(D.top[i].id), cx - cwid / 2 + offs[k], 330 + (k === 1 || D.top.length === 1 ? -20 : 20), cwid, chei, D.top.length === 1 ? -3 : rots[k]);
+      });
+      const best = D.top[0];
+      ctx.textAlign = 'center'; ctx.fillStyle = C.ink; ctx.font = `500 30px Fraunces, Georgia, serif`;
+      ctx.fillText(D.rated ? 'Mein Lieblingsbuch' : 'Zuletzt ausgelesen', cx, 790);
+      ctx.font = `italic 400 30px Newsreader, Georgia, serif`; ctx.fillStyle = C.mu; ctx.fillText(fitText(ctx, best.title, 420), cx, 835);
+      if (best.rating) drawStars(ctx, best.rating, cx - 34 * 5.48 / 2, 862, 34, C.ac);
+    }
+    foot();
+  }
+  const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+  return { blob, url: URL.createObjectURL(blob), missing };
+}
+async function shareReview(){
+  const r = sheet; if (!r || !r.blob) return;
+  const file = new File([r.blob], `lesejahr-${r.year}-${r.fmt === 'story' ? 'hochformat' : 'quadrat'}.png`, { type:'image/png' });
+  try { if (navigator.canShare && navigator.canShare({ files:[file] })) { await navigator.share({ files:[file] }); return; } } catch(e){ if (e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = r.url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); toast('Bild gespeichert.');
+}
+
 /* ---------------- actions ---------------- */
 function readDraft(){ if (!sheet || sheet.type !== 'edit') return; const d = sheet.draft; ['title','author','pages','startPage','publisher','year','isbn'].forEach(k => { const el = $('#f_' + k); if (el) d[k] = el.value.trim(); }); }
 function startTimer(id){
@@ -1164,10 +1412,17 @@ const ACT = {
     if (clean.status !== 'done') clean.finished = '';
     if (sheet.isNew){ clean.id = uid(); clean.added = new Date().toISOString(); S.books.push(clean); }
     else { Object.assign(book(d.id), clean); }
-    const msg = sheet.isNew ? 'Steht im Regal.' : 'Gespeichert.'; save(); sheet = null; renderLayer(); render(); toast(msg);
+    const justDone = clean.status === 'done' && (!prev || prev.status !== 'done'), target = sheet.isNew ? S.books[S.books.length - 1] : book(d.id);
+    const msg = sheet.isNew ? 'Steht im Regal.' : 'Gespeichert.'; save(); sheet = null; renderLayer(); render();
+    if (justDone) finishSplash(target); else toast(msg);
   },
   delBook: () => { if (!sheet.confirmDel){ sheet.confirmDel = true; return renderLayer(); } const id = sheet.draft.id; S.books = S.books.filter(b => b.id !== id); S.sessions = S.sessions.filter(s => s.bookId !== id); S.quotes.forEach(q => { if (q.bookId === id) q.bookId = ''; }); if (S.timer?.bookId === id) S.timer = null; save(); close(); toast('Buch gelöscht.'); },
   book: el => open('book', { id:el.dataset.id }),
+  review: () => open('review'),
+  revFmt: el => { if (sheet.fmt === el.dataset.v) return; sheet.fmt = el.dataset.v; sheet.url = null; sheet.blob = null; renderLayer(); },
+  revYear: el => { sheet.year = +el.dataset.v; sheet.url = null; sheet.blob = null; renderLayer(); },
+  shareReview: () => shareReview(),
+  rateBook: el => { const b = book(sheet.id); b.rating = b.rating === +el.dataset.v ? 0 : +el.dataset.v; save(); renderLayer(); },
   edit: el => { const b = book(el.dataset.id); openEdit({ ...b }, false, false); },
   start: el => startTimer(el.dataset.id),
   openTimer: () => open('timer'),
@@ -1197,7 +1452,7 @@ const ACT = {
     const done = $('#doneIn'); if (done && done.checked){ b.status = 'done'; b.finished = date; } else if (b.status === 'want') b.status = 'reading';
     if (sheet.timer) { S.timer = null; ambStop(); }
     save(); close();
-    celebrate({ pages: to - from, min, est, wasMet, bookDone, title: b.title, bookId: b.id });
+    if (bookDone) finishSplash(b); else celebrate({ pages: to - from, min, est, wasMet, bookDone, title: b.title, bookId: b.id });
   },
   editSess: el => open('editSess', { id:el.dataset.id }),
   saveSess: () => { const s = S.sessions.find(x => x.id === sheet.id); const f = +$('#f_from').value, t = +$('#f_to').value, m = +$('#f_min').value, d = $('#f_date').value; if (!(t > f) || !(m > 0)) return toast('Bitte Seiten und Minuten prüfen.'); Object.assign(s, { from:f, to:t, min:m, est:$('#f_est').checked ? (s.est || true) : false }); if (d && d !== dkey(s.date)) s.date = new Date(d + 'T20:00:00').toISOString(); save(); close(); toast('Gespeichert.'); },
