@@ -100,6 +100,10 @@ nav.tabs button[aria-current=page] span{display:inline}
 .week b.on{background:var(--ac)}
 .week b.today{box-shadow:0 0 0 2px var(--ac) inset;background:transparent;color:var(--ac)}
 .week b.today.on{background:var(--ac);color:#FBF7F0}
+.week b.p1{background:color-mix(in srgb,var(--ac) 22%,var(--sand))}
+.week b.p2{background:color-mix(in srgb,var(--ac) 42%,var(--sand))}
+.week b.p3{background:color-mix(in srgb,var(--ac) 64%,var(--sand))}
+.week b.today.p1,.week b.today.p2,.week b.today.p3{box-shadow:0 0 0 2px var(--ac) inset}
 .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px}
 .heat i{width:100%;aspect-ratio:1;border-radius:4px;background:var(--sand)}
 .bookrow{display:flex;gap:14px;align-items:center;padding:10px 0;border:none;background:none;width:100%;text-align:left}
@@ -313,7 +317,7 @@ function toast(msg){ const d = document.createElement('div'); d.className='toast
 function coverHTML(b, w, h, tilt = 0){
   const fs = Math.max(10, Math.round(w/8));
   const has = !!(b && b.cover);
-  const inner = has ? `<img src="${esc(b.cover)}" alt="" loading="lazy" onerror="this.previousElementSibling.style.display='';this.remove()">` : '';
+  const inner = has ? `<img src="${esc(b.coverData || b.cover)}" alt="" loading="lazy" onerror="this.previousElementSibling.style.display='';this.remove()">` : '';
   const ph = `<div class="ph" style="font-size:${fs}px;${has ? 'display:none' : ''}"><span>${esc(b?.title || 'Buch')}</span>${w>60?`<small style="font-size:${Math.max(9,fs-4)}px">${esc(b?.author||'')}</small>`:''}</div>`;
   const hue = b ? [...(b.title||'')].reduce((a,c)=>a+c.charCodeAt(0),0) % 4 : 0;
   const bg = ['#3E5A48','#7A3B2A','#36475E','#6A5A3A'][hue];
@@ -354,6 +358,7 @@ function open(type, data = {}){ sheet = { type, ...data }; renderLayer(); }
 function close(){ sheet = null; renderLayer(); render(); }
 
 /* ---------------- views ---------------- */
+function partCls(tot, k){ const v = goalVal(tot[k]); if (!v) return ''; const r = v / S.settings.goal; return r < 1/3 ? 'p1' : r < 2/3 ? 'p2' : 'p3'; }
 function streakCard(){
   const st = streak(), g = S.settings.goal, unit = S.settings.goalType === 'min' ? 'min' : 'Seiten';
   const tot = st.tot, t = today();
@@ -373,7 +378,7 @@ function streakCard(){
       <div class="bar ac"><i style="width:${pct}%"></i></div>
       <div class="row mu" style="justify-content:space-between;font-size:15px"><span>Heute <span class="d" style="color:var(--ink)">${Math.round(st.todayVal)}</span> von ${g} ${unit}</span><span>${st.todayMet ? 'Ziel erreicht' : `noch ${Math.ceil(left)} ${unit}`}</span></div>
     </div>
-    <div class="week" aria-hidden="true">${days.map(k => `<div><b class="${met(tot,k)?'on':''} ${k===t?'today':''}">${met(tot,k)?ic('check',15,2.6):''}</b>${WD[weekdayOf(k)]}</div>`).join('')}</div>
+    <div class="week" aria-hidden="true">${days.map(k => `<div><b class="${met(tot,k)?'on':partCls(tot,k)} ${k===t?'today':''}">${met(tot,k)?ic('check',15,2.6):''}</b>${WD[weekdayOf(k)]}</div>`).join('')}</div>
   </button>`;
 }
 function home(){
@@ -493,11 +498,67 @@ function stats(){
     <div class="rel" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       ${tile(fmtMin(w.m), 'diese 7 Tage')}${tile(w.p + ' S.', 'Seiten, 7 Tage')}${tile(fmtMin(mo.m), 'letzte 30 Tage')}${tile(maxStreak + ' Tage', 'längste Serie')}
     </div>
-    <div class="card rel"><div class="d" style="font-size:19px;margin-bottom:12px">Minuten pro Tag</div><div class="row" style="gap:8px;align-items:flex-end">${bars}</div></div>
+    ${dayCard(tot)}
     <div class="card rel"><div class="d" style="font-size:19px;margin-bottom:12px">Dein Lesekalender</div><div class="heat" role="img" aria-label="Lesetage der letzten 16 Wochen">${cells.join('')}</div><div class="label" style="margin-top:10px">${done} ${done===1?'Buch':'Bücher'} ausgelesen</div></div>
     <div class="card rel"><div class="d" style="font-size:19px;margin-bottom:8px">Tempo pro Buch</div>
       ${paces.length ? paces.map(({b,p}) => `<div style="padding:8px 0"><div class="row" style="justify-content:space-between"><span>${esc(b.title)}</span><span class="d">${Math.round(p.pace)} S./h</span></div><div class="bar" style="height:8px;margin-top:6px"><i style="width:${p.pace/pmx*100}%"></i></div></div>`).join('') : '<div class="mu">Sobald du eine Sitzung mit Timer gemessen hast, erscheint hier dein Tempo.</div>'}
     </div>
+  </div>`;
+}
+
+/* ---------------- Statistik: Woche / Monat mit Tagesdetails ---------------- */
+const statUI = { mode:'week', off:0, sel:null };
+const MON = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+function dayCard(tot){
+  const t = today(), u = statUI;
+  let keys, label;
+  if (u.mode === 'week'){
+    const end = addDays(t, -7 * u.off); keys = [...Array(7)].map((_, i) => addDays(end, i - 6));
+    const a = keys[0].split('-').map(Number), z = keys[6].split('-').map(Number);
+    label = u.off === 0 ? 'Letzte 7 Tage' : `${a[2]}. ${a[1] !== z[1] ? MON[a[1]-1].slice(0,3) + '. ' : ''}– ${z[2]}. ${MON[z[1]-1].slice(0,3)}.`;
+  } else {
+    const now = new Date(); const d = new Date(now.getFullYear(), now.getMonth() - u.off, 1);
+    const y = d.getFullYear(), m = d.getMonth(), n = new Date(y, m + 1, 0).getDate();
+    keys = [...Array(n)].map((_, i) => dkey(new Date(y, m, i + 1))); label = `${MON[m]} ${y}`;
+  }
+  const mins = keys.map(k => tot[k]?.min || 0), mx = Math.max(30, ...mins), total = mins.reduce((a, v) => a + v, 0);
+  const cell = (k, v) => { const sel = u.sel === k, fut = k > t, has = v > 0;
+    return { sel, fut, has, attrs: has ? `data-act="statDay" data-k="${k}" aria-pressed="${sel}" aria-label="${k}: ${Math.round(v)} Minuten"` : 'disabled aria-hidden="true"' }; };
+  let body;
+  if (u.mode === 'week'){
+    body = `<div class="row" style="gap:8px;align-items:flex-end">${keys.map((k, i) => { const v = mins[i], c = cell(k, v);
+      return `<button ${c.attrs} style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;padding:0;min-height:44px;color:inherit">
+        <span style="width:100%;height:110px;display:flex;align-items:flex-end"><span style="display:block;width:100%;height:${Math.max(4, v / mx * 110)}px;border-radius:12px;background:${c.sel ? 'var(--ac)' : 'var(--sage)'};opacity:${v ? 1 : .25};${c.sel ? 'box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--ac)' : ''}"></span></span>
+        <span class="mu" style="font-size:13px;${c.sel ? 'color:var(--ac);font-weight:600' : ''}">${WD[weekdayOf(k)]}</span></button>`; }).join('')}</div>`;
+  } else {
+    const lead = (weekdayOf(keys[0]) + 6) % 7;
+    body = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center">
+      ${['Mo','Di','Mi','Do','Fr','Sa','So'].map(d => `<span class="label" style="font-size:12px">${d}</span>`).join('')}
+      ${'<span></span>'.repeat(lead)}
+      ${keys.map((k, i) => { const v = mins[i], c = cell(k, v), lv = !v ? 0 : v < 15 ? .3 : v < 30 ? .5 : v < 60 ? .75 : 1;
+        return `<button ${c.attrs} style="aspect-ratio:1;border:none;border-radius:12px;padding:0;font-size:14px;position:relative;overflow:hidden;background:var(--bg);color:${lv >= .75 ? '#FBF7F0' : c.fut ? 'var(--ln)' : 'var(--ink)'};${c.sel ? 'box-shadow:0 0 0 2px var(--ink)' : ''}">
+          ${lv ? `<span style="position:absolute;inset:0;background:var(--ac);opacity:${lv}"></span>` : ''}<span style="position:relative">${+k.slice(8)}</span></button>`; }).join('')}
+    </div>`;
+  }
+  let detail = '';
+  if (u.sel && keys.includes(u.sel)){
+    const ss = S.sessions.filter(x => dkey(x.date) === u.sel), by = new Map();
+    ss.forEach(x => { const e = by.get(x.bookId) || { min:0, pages:0, est:false }; e.min += x.min; e.pages += pages(x); e.est = e.est || x.est === true; by.set(x.bookId, e); });
+    const [yy, mm, dd] = u.sel.split('-').map(Number);
+    const dayName = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][weekdayOf(u.sel)];
+    detail = `<div style="border-top:1px solid var(--ln);margin-top:16px;padding-top:12px">
+      <div class="row" style="justify-content:space-between;align-items:baseline"><span class="d" style="font-size:17px">${dayName}, ${dd}. ${MON[mm-1]}</span>${by.size > 1 ? `<span class="label">${fmtMin(ss.reduce((a, x) => a + x.min, 0))} insgesamt</span>` : ''}</div>
+      ${[...by.entries()].map(([id, e]) => { const b = book(id); return `<div class="row" style="gap:12px;padding:8px 0">${b ? coverHTML(b, 30, 44) : ''}<span style="flex:1;min-width:0"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b?.title || 'Gelöschtes Buch')}</span><span class="label">${e.pages} Seiten</span></span><span class="d" style="font-size:18px;${e.est ? 'font-style:italic;color:var(--mu)' : ''}">${e.est ? '≈ ' : ''}${fmtMin(e.min)}</span></div>`; }).join('')}
+    </div>`;
+  }
+  return `<div class="card rel">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <div class="seg" role="group" aria-label="Zeitraum" style="padding:3px;flex:0 0 auto"><button data-act="statMode" data-v="week" aria-pressed="${u.mode === 'week'}" style="min-height:38px;padding:0 14px">Woche</button><button data-act="statMode" data-v="month" aria-pressed="${u.mode === 'month'}" style="min-height:38px;padding:0 14px">Monat</button></div>
+      <div class="row" style="gap:2px"><button class="rb" data-act="statNav" data-d="1" aria-label="Zurück" style="width:40px;height:40px;background:transparent">${ic('back',18)}</button><button class="rb" data-act="statNav" data-d="-1" aria-label="Weiter" ${u.off === 0 ? 'disabled style="width:40px;height:40px;background:transparent;opacity:.3"' : 'style="width:40px;height:40px;background:transparent"'}><span style="display:inline-flex;transform:scaleX(-1)">${ic('back',18)}</span></button></div>
+    </div>
+    <div class="row" style="justify-content:space-between;align-items:baseline;margin-bottom:12px"><span class="d" style="font-size:19px">${label}</span><span class="label">${fmtMin(total)} gelesen</span></div>
+    ${body}
+    ${u.sel ? detail : `<div class="label" style="margin-top:12px;text-align:center">Tippe auf einen Tag für Details.</div>`}
   </div>`;
 }
 function quotes(){
@@ -916,7 +977,7 @@ async function stopScanner(){ scanning = false; if (scanner){ const s = scanner;
 function resizeImage(file, max = 600){
   return new Promise((res, rej) => { const img = new Image(); const url = URL.createObjectURL(file); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .82)); }; img.onerror = rej; img.src = url; });
 }
-$('#fileIn').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f || !sheet || sheet.type !== 'edit') return; readDraft(); try { sheet.draft.cover = await resizeImage(f); renderLayer(); } catch(_){ toast('Bild konnte nicht gelesen werden.'); } });
+$('#fileIn').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f || !sheet || sheet.type !== 'edit') return; readDraft(); try { sheet.draft.cover = await resizeImage(f); sheet.draft.coverData = ''; renderLayer(); } catch(_){ toast('Bild konnte nicht gelesen werden.'); } });
 $('#importIn').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { const d = JSON.parse(await f.text()); if (!Array.isArray(d.books)) throw 0; const n = d.books.length; S = normalize(Object.assign(freshState(), d)); await flush(); applyTheme(); close(); toast(`Sicherung geladen: ${n} Bücher.`); } catch(_){ toast('Diese Datei konnte nicht gelesen werden.'); } });
 
 /* ---------------- quote card export ---------------- */
@@ -1229,8 +1290,35 @@ function soundButton(){
 }
 
 
+
+/* ---------------- Cover auf dem Gerät speichern ----------------
+   Fremde Cover-Bilder dürfen ohne Freigabe des Servers nicht in ein exportiertes Bild.
+   Daher wird jedes Cover einmal geladen (direkt oder über den Bild-Proxy wsrv.nl)
+   und verkleinert als Bilddaten im Buch gespeichert. */
+const coverProxy = u => 'https://wsrv.nl/?url=' + encodeURIComponent(u) + '&w=480&output=jpg&q=82';
+function imgToData(im, max = 480){
+  const sc = Math.min(1, max / Math.max(im.naturalWidth || im.width, im.naturalHeight || im.height));
+  const c = document.createElement('canvas'); c.width = Math.round((im.naturalWidth || im.width) * sc); c.height = Math.round((im.naturalHeight || im.height) * sc);
+  c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', .84);            // wirft, wenn das Bild nicht freigegeben ist
+}
+const coverBusy = new Set();
+async function cacheCover(b){
+  if (!b || !b.cover || b.cover.startsWith('data:') || b.coverData || coverBusy.has(b.id) || PREVIEW_MODE) return !!(b && (b.coverData || (b.cover || '').startsWith('data:')));
+  coverBusy.add(b.id);
+  try {
+    for (const url of [b.cover, coverProxy(b.cover)]){
+      const im = await loadImg(url, 8000); if (!im) continue;
+      try { b.coverData = imgToData(im); save(); return true; } catch(e){}
+    }
+    return false;
+  } finally { coverBusy.delete(b.id); }
+}
+async function cacheAllCovers(){ for (const b of S.books) { if (b.cover && !b.coverData && !b.cover.startsWith('data:')) { await cacheCover(b); } } }
+
 /* ---------------- Jahresrückblick (Canvas) ---------------- */
 const REVIEW_URL = 'robert-wlr.github.io/Reading-Journal';
+const PREVIEW_MODE = typeof PREVIEW !== 'undefined' && PREVIEW;
 function reviewYears(){
   const ys = new Set([new Date().getFullYear()]);
   S.sessions.forEach(s => ys.add(new Date(s.date).getFullYear()));
@@ -1291,7 +1379,7 @@ async function buildReview(y, fmt){
   const covers = story ? D.done.slice(-7) : [];
   const want = [...new Set([...D.top, ...covers])];
   const imgs = new Map(); let missing = 0;
-  await Promise.all(want.map(async b => { const im = await loadImg(b.cover); if (b.cover && !im) missing++; imgs.set(b.id, im); }));
+  await Promise.all(want.map(async b => { if (b.cover && !b.coverData && !b.cover.startsWith('data:')) await cacheCover(b); const src = b.coverData || (b.cover && b.cover.startsWith('data:') ? b.cover : ''); const im = await loadImg(src); if (b.cover && !im) missing++; imgs.set(b.id, im); }));
   const icon = await loadImg('icon-192.png', 2500);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
   const C = { bg:'#F3ECE0', card:'#FBF7F0', ink:'#2A231C', mu:'#6B6053', ac:'#A7442A', blob:'#E8D3BE', blob2:'#DCC4A8' };
@@ -1401,11 +1489,12 @@ const ACT = {
   manualBook: () => openEdit({ title:'', author:'' }, true, false),
   status: el => { readDraft(); sheet.draft.status = el.dataset.v; renderLayer(); },
   coverPhoto: () => { readDraft(); $('#fileIn').click(); },
-  coverRemove: () => { readDraft(); sheet.draft.cover = ''; renderLayer(); },
-  coverReload: async () => { readDraft(); const isbn = normIsbn(sheet.draft.isbn); if (!isbn) return toast('Keine gültige ISBN.'); toast('Suche Cover …'); const r = await lookupIsbn(isbn); if (r?.cover){ sheet.draft.cover = r.cover; renderLayer(); } else toast('Kein Cover gefunden – mach einfach ein Foto.'); },
+  coverRemove: () => { readDraft(); sheet.draft.cover = ''; sheet.draft.coverData = ''; renderLayer(); },
+  coverReload: async () => { readDraft(); const isbn = normIsbn(sheet.draft.isbn); if (!isbn) return toast('Keine gültige ISBN.'); toast('Suche Cover …'); const r = await lookupIsbn(isbn); if (r?.cover){ sheet.draft.cover = r.cover; sheet.draft.coverData = ''; renderLayer(); } else toast('Kein Cover gefunden – mach einfach ein Foto.'); },
   saveBook: () => {
     readDraft(); const d = sheet.draft;
     if (!d.title) return toast('Bitte einen Titel eingeben.');
+    if (!sheet.isNew && book(d.id) && book(d.id).cover !== d.cover) d.coverData = '';
     const clean = { ...d, pages: parseInt(d.pages) || '', startPage: parseInt(d.startPage) || 0, isbn: normIsbn(d.isbn) || d.isbn };
     const prev = sheet.isNew ? null : book(d.id);
     if (clean.status === 'done' && (!prev || prev.status !== 'done')) clean.finished = new Date().toISOString();
@@ -1415,10 +1504,14 @@ const ACT = {
     const justDone = clean.status === 'done' && (!prev || prev.status !== 'done'), target = sheet.isNew ? S.books[S.books.length - 1] : book(d.id);
     const msg = sheet.isNew ? 'Steht im Regal.' : 'Gespeichert.'; save(); sheet = null; renderLayer(); render();
     if (justDone) finishSplash(target); else toast(msg);
+    cacheCover(target);
   },
   delBook: () => { if (!sheet.confirmDel){ sheet.confirmDel = true; return renderLayer(); } const id = sheet.draft.id; S.books = S.books.filter(b => b.id !== id); S.sessions = S.sessions.filter(s => s.bookId !== id); S.quotes.forEach(q => { if (q.bookId === id) q.bookId = ''; }); if (S.timer?.bookId === id) S.timer = null; save(); close(); toast('Buch gelöscht.'); },
   book: el => open('book', { id:el.dataset.id }),
   review: () => open('review'),
+  statMode: el => { statUI.mode = el.dataset.v; statUI.off = 0; statUI.sel = null; render(); },
+  statNav: el => { statUI.off = Math.max(0, statUI.off + +el.dataset.d); statUI.sel = null; render(); },
+  statDay: el => { statUI.sel = statUI.sel === el.dataset.k ? null : el.dataset.k; const y = scrollY; render(); scrollTo(0, y); },
   revFmt: el => { if (sheet.fmt === el.dataset.v) return; sheet.fmt = el.dataset.v; sheet.url = null; sheet.blob = null; renderLayer(); },
   revYear: el => { sheet.year = +el.dataset.v; sheet.url = null; sheet.blob = null; renderLayer(); },
   shareReview: () => shareReview(),
@@ -1516,6 +1609,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { if
 (async function init(){
   S = await loadState();
   applyTheme(); render();
+  setTimeout(() => cacheAllCovers(), 3000);
   if (S.timer) open('timer');
   askPersist();
 })();
