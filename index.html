@@ -43,6 +43,12 @@ h1{margin:0;font-weight:450;font-size:34px;line-height:1.06}
 h2{margin:0;font-weight:450;font-size:25px;line-height:1.15}
 .card{background:var(--card);border-radius:30px;box-shadow:var(--shadow);padding:20px}
 .stack{display:flex;flex-direction:column;gap:18px}
+.car{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:-12px -20px -34px;padding:12px 20px 34px;scroll-padding:0 20px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.car::-webkit-scrollbar{display:none}
+.car>.card{flex:0 0 calc(100% - 30px);scroll-snap-align:start;scroll-snap-stop:always;min-width:0}
+.cdots{position:absolute;top:20px;right:20px;display:flex;gap:5px;align-items:center}
+.cdots i{width:6px;height:6px;border-radius:3px;background:var(--ink);opacity:.2;transition:width .2s}
+.cdots i.on{width:16px;background:var(--ac);opacity:1}
 .row{display:flex;align-items:center;gap:12px}
 .pill{height:56px;padding:0 24px;border:none;border-radius:28px;background:var(--ink);color:var(--onInk);display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--D);font-variation-settings:'SOFT' 100,'WONK' 1;font-size:18px;font-weight:500}
 .pill.sec{background:var(--sand);color:var(--ink)}
@@ -314,12 +320,14 @@ function pace(bookId){
   return { n:0, pace:S.settings.fallbackPace || 40, src:'default' };
 }
 const paceTxt = p => p.src === 'book' ? `Schnitt aus ${p.n} gemessenen Sitzung${p.n>1?'en':''} in diesem Buch` : p.src === 'all' ? `noch keine Messung in diesem Buch – Schnitt aus all deinen Büchern` : `noch keine Messung – Standardwert aus den Einstellungen`;
+const lastRead = b => Math.max(+new Date(b.added || 0), ...sessOf(b.id).map(s => +new Date(s.date)));
+function readingBooks(){
+  const tb = S.timer ? S.timer.bookId : null;
+  return S.books.filter(b => b.status === 'reading').sort((a,b) => (b.id === tb) - (a.id === tb) || lastRead(b) - lastRead(a));
+}
 function currentBook(){
   if (S.timer) return book(S.timer.bookId);
-  const reading = S.books.filter(b => b.status === 'reading');
-  if (!reading.length) return null;
-  const last = b => Math.max(+new Date(b.added || 0), ...sessOf(b.id).map(s => +new Date(s.date)));
-  return reading.sort((a,b) => last(b) - last(a))[0];
+  return readingBooks()[0] || null;
 }
 function dayTotals(){
   const m = {};
@@ -363,9 +371,25 @@ function tabs(){
   const it = [['home','home','Heute'],['shelf','book','Regal'],['stats','chart','Statistik'],['quotes','quote','Zitate']];
   return `<nav class="tabs" aria-label="Hauptnavigation">${it.map(([v,i,l]) => `<button data-act="tab" data-v="${v}" aria-label="${l}" ${view===v?'aria-current="page"':''}>${ic(i,21,1.9)}<span>${l}</span></button>`).join('')}</nav>`;
 }
+let carId = null, carTop = null;
+function initCarousel(){
+  const car = $('#curCar'); if (!car) return;
+  const cards = [...car.children], top = cards[0].dataset.cur;
+  // nach neuem Eintrag rutscht das Buch nach vorn – dann vorne anzeigen
+  if (carTop !== top) carId = top;
+  carTop = top;
+  const t = cards.find(c => c.dataset.cur === carId);
+  if (t) car.scrollLeft = t.offsetLeft - cards[0].offsetLeft;
+  car.addEventListener('scroll', () => {
+    const w = cards[1].offsetLeft - cards[0].offsetLeft;
+    const k = Math.max(0, Math.min(cards.length - 1, Math.round(car.scrollLeft / w)));
+    carId = cards[k].dataset.cur;
+  }, { passive:true });
+}
 function render(){
   const app = $('#app');
   app.innerHTML = ({ home, shelf, stats, quotes }[view])() + tabs();
+  initCarousel();
   renderLayer();
 }
 function fitCard(){
@@ -429,12 +453,15 @@ function home(){
       <div class="mu">Scanne den Strichcode auf der Rückseite oder tippe die ISBN ein.</div>
       <button class="pill" data-act="add">${ic('scan',20)} Buch hinzufügen</button></div>`;
   } else {
+    const rb = readingBooks(), n = rb.length;
+    const cards = rb.map((b, idx) => {
+    const dots = n > 1 ? `<div class="cdots" aria-hidden="true">${rb.map((_, k) => `<i class="${k===idx?'on':''}"></i>`).join('')}</div>` : '';
     const cp = curPage(b), p = pace(b.id), rest = b.pages ? Math.max(0, b.pages - cp) / p.pace * 60 : 0;
     const timerOn = S.timer && S.timer.bookId === b.id;
-    main = `<div class="card stack rel">
+    return `<div class="card stack rel" data-cur="${b.id}">${dots}
       <button class="row" data-act="book" data-id="${b.id}" style="gap:18px;border:none;background:none;padding:0;text-align:left">
         ${coverHTML(b, 96, 142, -3)}
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;${n>1?'padding-right:34px':''}">
           <div class="d" style="font-size:24px;line-height:1.1;font-weight:500">${esc(b.title)}</div>
           <div class="it mu">${esc(b.author||'')}</div>
           ${b.pages ? `<div class="d mu" style="margin-top:10px;font-size:15px">${cp>=b.pages?'ausgelesen':'noch etwa'}</div><div class="d" style="font-size:26px;color:var(--ac);line-height:1">${cp>=b.pages?'Fertig!':fmtHours(rest)}</div>` : ''}
@@ -448,6 +475,8 @@ function home(){
         <button class="rb" data-act="log" data-id="${b.id}" aria-label="Seiten eintragen">${ic('plus',22)}</button>
       </div>
     </div>`;
+    });
+    main = n > 1 ? `<div class="car" id="curCar" aria-label="Bücher, die du gerade liest – zum Wechseln wischen">${cards.join('')}</div>` : cards[0];
   }
   const recent = [...S.sessions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
   const list = recent.length ? `<div class="rel"><div class="d" style="font-size:19px;margin:4px 4px 2px">Letzte Sitzungen</div>${recent.map(s => sessRow(s, true)).join('')}</div>` : '';
