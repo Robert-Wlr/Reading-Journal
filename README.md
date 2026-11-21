@@ -27,7 +27,7 @@
 
 | | | | |
 |---|---|---|---|
-| ![](shot-heute.jpg) | ![](shot-timer.jpg) | ![](shot-feier.jpg) | ![](shot-zitat.jpg) |
+| ![](shot-heute.jpg) | ![](shot-timer.jpg) | ![](shot-fertig.jpg) | ![](shot-rueckblick.jpg) |
 
 ## Install
 
