@@ -43,12 +43,12 @@ h1{margin:0;font-weight:450;font-size:34px;line-height:1.06}
 h2{margin:0;font-weight:450;font-size:25px;line-height:1.15}
 .card{background:var(--card);border-radius:30px;box-shadow:var(--shadow);padding:20px}
 .stack{display:flex;flex-direction:column;gap:18px}
-.car{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:-12px -20px -34px;padding:12px 20px 34px;scroll-padding:0 20px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.car{display:flex;align-items:flex-start;gap:20px;overflow-x:auto;overflow-y:hidden;box-sizing:border-box;scroll-snap-type:x mandatory;margin:-12px -20px -34px;padding:12px 20px 34px;scroll-padding:0 20px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 .car::-webkit-scrollbar{display:none}
-.car>.card{flex:0 0 calc(100% - 30px);scroll-snap-align:start;scroll-snap-stop:always;min-width:0}
+.car>.card{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;min-width:0}
 .cdots{position:absolute;top:20px;right:20px;display:flex;gap:5px;align-items:center}
-.cdots i{width:6px;height:6px;border-radius:3px;background:var(--ink);opacity:.2;transition:width .2s}
-.cdots i.on{width:16px;background:var(--ac);opacity:1}
+.cdots i{width:5px;height:5px;border-radius:3px;background:var(--ink);opacity:.16;transition:width .2s,opacity .2s}
+.cdots i.on{width:14px;opacity:.42}
 .row{display:flex;align-items:center;gap:12px}
 .pill{height:56px;padding:0 24px;border:none;border-radius:28px;background:var(--ink);color:var(--onInk);display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--D);font-variation-settings:'SOFT' 100,'WONK' 1;font-size:18px;font-weight:500}
 .pill.sec{background:var(--sand);color:var(--ink)}
@@ -380,11 +380,16 @@ function initCarousel(){
   carTop = top;
   const t = cards.find(c => c.dataset.cur === carId);
   if (t) car.scrollLeft = t.offsetLeft - cards[0].offsetLeft;
-  car.addEventListener('scroll', () => {
-    const w = cards[1].offsetLeft - cards[0].offsetLeft;
-    const k = Math.max(0, Math.min(cards.length - 1, Math.round(car.scrollLeft / w)));
-    carId = cards[k].dataset.cur;
-  }, { passive:true });
+  const w = () => cards[1].offsetLeft - cards[0].offsetLeft;
+  // Höhe folgt der Karte: beim Wischen zwischen den Kartenhöhen überblenden
+  const fit = () => {
+    const x = Math.max(0, Math.min(cards.length - 1, car.scrollLeft / w())), a = Math.floor(x), f = x - a;
+    const h = cards[a].offsetHeight + ((cards[a + 1] || cards[a]).offsetHeight - cards[a].offsetHeight) * f;
+    car.style.height = (h + 46) + 'px';
+    carId = cards[Math.round(x)].dataset.cur;
+  };
+  fit();
+  car.addEventListener('scroll', fit, { passive:true });
 }
 function render(){
   const app = $('#app');
