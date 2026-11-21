@@ -15,6 +15,7 @@
 - **Reading streak** – daily goal in minutes or pages, and a celebration screen that grows with your streak
 - **Books** – add them by barcode scan, ISBN or title search (Open Library and Google Books); everything stays editable
 - **Quote cards**
+  - scan a book page with your camera; the text is recognised on your device (OCR)
   - 13 typefaces, adjustable weight, italic or upright
   - five colours, three formats
   - share as an image
