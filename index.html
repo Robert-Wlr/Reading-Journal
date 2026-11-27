@@ -421,7 +421,7 @@ function renderLayer(){
   if (sheet.type === 'card') { fitCard(); document.fonts && document.fonts.ready.then(fitCard); }
 }
 function open(type, data = {}){ sheet = { type, ...data }; renderLayer(); }
-function close(){ sheet = sheet && sheet.back ? sheet.back : null; renderLayer(); render(); }
+function close(){ sheet = sheet && sheet.back && typeof sheet.back === 'object' && !(sheet.back.type === 'timer' && !S.timer) ? sheet.back : null; renderLayer(); render(); }
 
 /* ---------------- views ---------------- */
 function partCls(tot, k){ const v = goalVal(tot[k]); if (!v) return ''; const r = v / S.settings.goal; return r < 1/3 ? 'p1' : r < 2/3 ? 'p2' : 'p3'; }
@@ -474,7 +474,7 @@ function home(){
         </div>
       </button>
       ${b.pages ? `<div class="stack" style="gap:6px"><div class="bar"><i style="width:${Math.min(100,cp/b.pages*100)}%"></i></div>
-      <div class="row mu" style="justify-content:space-between;font-size:14px"><span>Seite ${cp} von ${b.pages}</span><span>${Math.round(p.pace)} Seiten pro Stunde${p.src!=='book'?'*':''}</span></div></div>` : `<div class="mu" style="font-size:14px">Seite ${cp} · Seitenzahl fehlt – <button class="link" data-act="edit" data-id="${b.id}" style="min-height:0;padding:0">ergänzen</button></div>`}
+      <div class="row mu" style="justify-content:space-between;font-size:14px"><span>${Math.min(100, Math.floor(cp / b.pages * 100))}% (S. ${cp} von ${b.pages})</span><span>${Math.round(p.pace)} Seiten/Std.${p.src!=='book'?'*':''}</span></div></div>` : `<div class="mu" style="font-size:14px">Seite ${cp} · Seitenzahl fehlt – <button class="link" data-act="edit" data-id="${b.id}" style="min-height:0;padding:0">ergänzen</button></div>`}
       <div class="row" style="gap:10px">
         ${timerOn ? `<button class="pill ac grow" data-act="openTimer">${ic('clock',20)} Timer läuft · <span data-live>${clock(liveMs())}</span></button>`
                   : `<button class="pill grow" data-act="start" data-id="${b.id}">${ic('play',20)} Weiterlesen</button>`}
@@ -586,7 +586,7 @@ function stats(){
   // heatmap 16 Wochen, beginnend Montag
   let start = addDays(t, -(16*7 - 1)); while (weekdayOf(start) !== 1) start = addDays(start, -1);
   const cells = []; for (let k = start; k <= t; k = addDays(k,1)) { const v = tot[k]?.min || 0; const lv = v === 0 ? 0 : v < 15 ? .3 : v < 30 ? .5 : v < 60 ? .75 : 1; cells.push(`<i style="${lv?`background:var(--ac);opacity:${lv}`:''}" title="${k}: ${Math.round(v)} min"></i>`); }
-  const paces = S.books.map(b => ({ b, p: pace(b.id) })).filter(x => x.p.src === 'book');
+  const paces = readingBooks().map(b => ({ b, p: pace(b.id) })).filter(x => x.p.src === 'book');
   const pmx = Math.max(60, ...paces.map(x => x.p.pace));
   const tile = (v, l) => `<div class="card" style="padding:16px 18px"><div class="d" style="font-size:28px;line-height:1.05">${v}</div><div class="label">${l}</div></div>`;
   return `${blob(-80, -40, 260, .6)}
@@ -602,8 +602,8 @@ function stats(){
     </div>
     ${dayCard(tot)}
     <div class="card rel"><div class="d" style="font-size:19px;margin-bottom:12px">Dein Lesekalender</div><div class="heat" role="img" aria-label="Lesetage der letzten 16 Wochen">${cells.join('')}</div><div class="label" style="margin-top:10px">${done} ${done===1?'Buch':'Bücher'} ausgelesen</div></div>
-    <div class="card rel"><div class="d" style="font-size:19px;margin-bottom:8px">Tempo pro Buch</div>
-      ${paces.length ? paces.map(({b,p}) => `<div style="padding:8px 0"><div class="row" style="justify-content:space-between"><span>${esc(b.title)}</span><span class="d">${Math.round(p.pace)} S./h</span></div><div class="bar" style="height:8px;margin-top:6px"><i style="width:${p.pace/pmx*100}%"></i></div></div>`).join('') : '<div class="mu">Sobald du eine Sitzung mit Timer gemessen hast, erscheint hier dein Tempo.</div>'}
+    <div class="card rel"><div class="d" style="font-size:19px">Tempo pro Buch</div><div class="label" style="margin:2px 0 6px">Bücher, die du gerade liest – das Tempo gelesener Bücher steht auf ihrer Buchseite.</div>
+      ${paces.length ? paces.map(({b,p}) => `<div style="padding:8px 0"><div class="row" style="justify-content:space-between"><span>${esc(b.title)}</span><span class="d">${Math.round(p.pace)} S./h</span></div><div class="bar" style="height:8px;margin-top:6px"><i style="width:${p.pace/pmx*100}%"></i></div></div>`).join('') : '<div class="mu">Sobald du in einem aktuellen Buch eine Sitzung gemessen hast, erscheint hier dein Tempo.</div>'}
     </div>
   </div>`;
 }
@@ -704,6 +704,7 @@ const SHEETS = {
         <div class="label" style="text-align:center;margin-top:-6px">Geschätzte Seiten zählen für Fortschritt und Serie, nicht für dein Tempo.</div>
         <label class="field" style="align-self:stretch"><span class="label">Tag</span><input id="dateIn" type="date" value="${sheet.date || today()}" max="${today()}"></label>
         <button class="pill" data-act="saveLog" style="align-self:stretch;height:60px">${ic('check',20)} Eintragen</button>
+        ${sheet.timer ? `<button class="link" data-act="resumeTimer" style="align-self:center;display:inline-flex;gap:6px;align-items:center">${ic('play',16)} Doch weiterlesen – Timer fortsetzen</button>` : ''}
         <button class="link" data-act="byTime" data-v="0">${fromTimer ? 'doch Seite selbst eintragen' : 'doch Seiten eintragen'}</button>
       </div></div>`;
     }
@@ -730,6 +731,7 @@ const SHEETS = {
         <label class="field" style="align-self:stretch"><span class="label">Tag</span><input id="dateIn" type="date" value="${sheet.date || today()}" max="${today()}"></label>
         ${b.pages ? `<label class="row" style="align-self:stretch;gap:10px;min-height:44px"><input type="checkbox" id="doneIn" style="width:22px;height:22px;accent-color:var(--ac)" ${sheet.to >= b.pages ? 'checked' : ''}> <span>Buch ausgelesen</span></label>` : ''}
         <button class="pill" data-act="saveLog" style="align-self:stretch;height:60px">${ic('check',20)} Eintragen</button>
+        ${sheet.timer ? `<button class="link" data-act="resumeTimer" style="align-self:center;display:inline-flex;gap:6px;align-items:center">${ic('play',16)} Doch weiterlesen – Timer fortsetzen</button>` : ''}
         ${fromTimer ? `<div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center"><button class="link" data-act="byTime" data-v="1">Seite unbekannt? Schätzen lassen</button><span class="mu">·</span><button class="link" data-act="discardTimer">verwerfen</button></div>` : ''}
       </div></div>`;
   },
@@ -747,10 +749,11 @@ const SHEETS = {
       <div class="rel d" style="font-size:92px;font-weight:350;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums" data-live>${clock(ms)}</div>
       <div class="rel chip" style="margin-top:24px;height:44px;padding:0 18px"><span style="color:var(--sage)">${ic('book',18)}</span><span>gerade etwa bei <span class="d" style="color:var(--ac);font-size:18px" data-estpage>Seite ${estPage}</span></span></div>
       <div class="rel label" style="margin-top:10px">gestartet bei Seite ${t.from}</div>
+      <button class="rb rel" style="margin-top:34px;width:96px;height:96px;background:var(--ink);color:var(--onInk);box-shadow:var(--shadow)" data-act="pause" aria-label="${t.running?'Pausieren':'Fortsetzen'}">${ic(t.running?'pause':'play',38)}</button>
+      <div class="rel label" style="margin-top:10px">${t.running ? 'Pause' : 'Weiterlesen'}</div>
       <div style="flex:1;min-height:40px"></div>
       <div class="row rel" style="align-self:stretch;gap:12px">
-        <button class="rb card-bg" style="width:60px;height:60px" data-act="pause" aria-label="${t.running?'Pausieren':'Fortsetzen'}">${ic(t.running?'pause':'play',24)}</button>
-        <button class="pill grow" style="height:60px" data-act="finish">Fertig gelesen</button>
+        <button class="pill grow" style="height:60px;background:var(--card);color:var(--ink);box-shadow:var(--shadow)" data-act="finish">${ic('check',20)} Fertig gelesen</button>
         <button class="rb card-bg" style="width:60px;height:60px" data-act="newQuote" data-from="timer" aria-label="Zitat merken">${ic('quote',24)}</button>
       </div>
     </div></div>`;
@@ -916,10 +919,10 @@ const SHEETS = {
   },
   quote(){
     const reading = S.books.filter(b => b.status !== 'want');
-    const bid = sheet.bookId || currentBook()?.id || reading[0]?.id || '';
+    const bid = sheet.editId ? (sheet.bookId || '') : (sheet.bookId || currentBook()?.id || reading[0]?.id || '');
     return `<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qT"><div class="grab"></div>
       <div class="stack" style="gap:12px">
-        <h2 class="d" id="qT">Zitat festhalten</h2>
+        <h2 class="d" id="qT">${sheet.editId ? 'Zitat bearbeiten' : 'Zitat festhalten'}</h2>
         <label class="field"><span class="label">Zitat</span><textarea id="qText" ${sheet.text ? '' : 'data-autofocus'} placeholder="Tippe oder füge den Satz ein …">${esc(sheet.text || '')}</textarea></label>
         <button class="chip" data-act="ocrStart" style="align-self:flex-start;height:44px;box-shadow:none;background:var(--soft)"><span style="color:var(--sage)">${ic('camera',20)}</span><span class="d">Buchseite fotografieren</span></button>
         ${sheet.fromOcr ? `<div class="label" style="margin-top:-6px">Erkannter Text – bitte kurz prüfen und bei Bedarf korrigieren.</div>` : ''}
@@ -965,7 +968,7 @@ const SHEETS = {
       <div class="row" style="justify-content:space-between">
         <button class="rb card-bg s48" data-act="close" aria-label="Zurück">${ic('back')}</button>
         <span class="d" style="font-size:19px">Zitatkarte</span>
-        <button class="rb s48" style="background:var(--ink);color:var(--onInk)" data-act="exportCard" aria-label="Als Bild teilen oder sichern">${ic('share',20)}</button>
+        <div class="row" style="gap:8px"><button class="rb card-bg s48" data-act="editQuote" aria-label="Zitat bearbeiten">${ic('pencil',20)}</button><button class="rb s48" style="background:var(--ink);color:var(--onInk)" data-act="exportCard" aria-label="Als Bild teilen oder sichern">${ic('share',20)}</button></div>
       </div>
       <div class="qcard" style="width:${W}px;height:${H}px;background:${bg.bg};color:${bg.fg};padding:${Math.round(W*.11)}px ${Math.round(W*.1)}px;text-align:${c.align}">
         <svg class="blob" aria-hidden="true" width="${W*.85}" height="${W*.85}" viewBox="0 0 200 200" style="left:${W*.5}px;top:${H-W*.6}px;opacity:.9"><path fill="${bg.blob}" d="${BLOB}" transform="translate(100 100)"/></svg>
@@ -994,6 +997,7 @@ const SHEETS = {
       <div class="row" style="gap:12px;padding:0 4px;flex-wrap:wrap">${CARD_BGS.map((x,i) => `<button class="swatch" data-act="cbg" data-v="${i}" aria-pressed="${c.bg===i}" aria-label="${x.name}" style="background:${x.bg}"></button>`).join('')}</div>
       <div class="seg" role="group" aria-label="Format">${['4:5','1:1','9:16'].map(f => `<button data-act="cfmt" data-v="${f}" aria-pressed="${c.fmt===f}">${f}</button>`).join('')}</div>
       <div class="seg" role="group" aria-label="Ausrichtung">${[['left','linksbündig'],['center','zentriert']].map(([k,l]) => `<button data-act="cal" data-v="${k}" aria-pressed="${c.align===k}">${l}</button>`).join('')}</div>
+      <button class="link" data-act="editQuote" style="align-self:center">Text, Buch oder Seite bearbeiten</button>
       <button class="link" data-act="delQuote" style="align-self:center">${sheet.confirmDel ? 'Wirklich löschen? Nochmal tippen' : 'Zitat löschen'}</button>
     </div></div>`;
   }
@@ -1134,12 +1138,14 @@ async function exportCard(){
   const x = c.align === 'center' ? W/2 : padX;
   ctx.fillStyle = bg.ac; ctx.font = `400 ${64*k}px "${qf}", serif`; ctx.fillText('“', x, padY + 40*k);
   let size = c.size * k; ctx.font = `${style} ${fw} ${size}px "${c.font}", serif`;
-  let lines = wrapLines(ctx, q.text, maxW); const avail = H - padY*2 - 100*k;
+  const srcF = `400 ${14*k}px "Newsreader", serif`, srcLH = 14*k*1.3;
+  ctx.save(); ctx.font = srcF; const src = [b?.author, b?.title].filter(Boolean).join(', '), srcLines = src ? wrapLines(ctx, src, maxW) : []; ctx.restore();
+  let lines = wrapLines(ctx, q.text, maxW); const avail = H - padY*2 - 100*k - Math.max(0, srcLines.length - 1) * srcLH;
   while (lines.length * size * lh > avail && size > 20){ size -= 2; ctx.font = `${style} ${fw} ${size}px "${c.font}", serif`; lines = wrapLines(ctx, q.text, maxW); }
-  const blockH = lines.length * size * lh; let y = (H - blockH)/2 + size;
+  const blockH = lines.length * size * lh; let y = (H - Math.max(0, srcLines.length - 1) * srcLH - blockH)/2 + size;
   ctx.fillStyle = bg.fg; lines.forEach(l => { ctx.fillText(l, x, y); y += size * lh; });
-  ctx.globalAlpha = .8; ctx.font = `400 ${14*k}px "Newsreader", serif`;
-  const src = [b?.author, b?.title].filter(Boolean).join(', '); ctx.fillText(src, x, H - padY);
+  ctx.globalAlpha = .8; ctx.font = srcF;
+  srcLines.forEach((l, i) => ctx.fillText(l, x, H - padY - (srcLines.length - 1 - i) * srcLH));
   ctx.globalAlpha = 1;
   const blobOut = await new Promise(r => cv.toBlob(r, 'image/png'));
   const file = new File([blobOut], 'zitat.png', { type:'image/png' });
@@ -1186,7 +1192,7 @@ function saveByTime(){
   const date = dateK === today() ? new Date().toISOString() : new Date(dateK + 'T20:00:00').toISOString();
   S.sessions.push({ id:uid(), bookId:b.id, date, from, to, min:Math.round(min*10)/10, est:'pages', run:b.run || 0 }); claim(b);
   if (b.status === 'want') b.status = 'reading';
-  if (sheet.timer) { S.timer = null; ambStop(); }
+  if (sheet.timer) { S.timer = null; ambStop(); sheet.back = null; }
   save(); close();
   celebrate({ pages: to - from, min, est:'pages', wasMet, bookDone:false, title: b.title, bookId: b.id, toPage: to });
 }
@@ -1478,6 +1484,7 @@ function loadImg(src, ms = 5000){
   });
 }
 function rr(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function wrapN(ctx, text, maxW, n){ const ls = wrapLines(ctx, text, maxW); if (ls.length <= n) return ls; const out = ls.slice(0, n - 1); out.push(fitText(ctx, ls.slice(n - 1).join(' '), maxW)); return out; }
 function fitText(ctx, text, maxW){ if (ctx.measureText(text).width <= maxW) return text; while (text.length > 1 && ctx.measureText(text + '…').width > maxW) text = text.slice(0, -1); return text + '…'; }
 function drawCover(ctx, b, img, x, y, w, h, rot = 0){
   ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(rot * Math.PI / 180); ctx.translate(-w / 2, -h / 2);
@@ -1553,7 +1560,7 @@ async function buildReview(y, fmt){
         const x = x0 + i * (cwid + gap); drawCover(ctx, b, imgs.get(b.id), x, 1045, cwid, chei, [-3, 1.5, -1.5][i]);
         if (b.rating){ const sz = 38; drawStars(ctx, b.rating, x + (cwid - sz * 5.48) / 2, 1450, sz, C.ac); }
         ctx.fillStyle = C.ink; ctx.font = `italic 400 28px Newsreader, Georgia, serif`; ctx.textAlign = 'center';
-        ctx.fillText(fitText(ctx, b.title, cwid + 40), x + cwid / 2, b.rating ? 1530 : 1475); ctx.textAlign = 'left';
+        wrapN(ctx, b.title, cwid + 40, 2).forEach((l, j) => ctx.fillText(l, x + cwid / 2, (b.rating ? 1530 : 1475) + j * 34)); ctx.textAlign = 'left';
       });
     } else {
       ctx.fillStyle = C.mu; ctx.font = `italic 400 40px Newsreader, Georgia, serif`; ctx.textAlign = 'center';
@@ -1590,8 +1597,8 @@ async function buildReview(y, fmt){
       const best = D.top[0];
       ctx.textAlign = 'center'; ctx.fillStyle = C.ink; ctx.font = `500 30px Fraunces, Georgia, serif`;
       ctx.fillText(D.rated ? 'Mein Lieblingsbuch' : 'Zuletzt ausgelesen', cx, 790);
-      ctx.font = `italic 400 30px Newsreader, Georgia, serif`; ctx.fillStyle = C.mu; ctx.fillText(fitText(ctx, best.title, 420), cx, 835);
-      if (best.rating) drawStars(ctx, best.rating, cx - 34 * 5.48 / 2, 862, 34, C.ac);
+      ctx.font = `italic 400 30px Newsreader, Georgia, serif`; ctx.fillStyle = C.mu; const bl = wrapN(ctx, best.title, 420, 2); bl.forEach((l, j) => ctx.fillText(l, cx, 835 + j * 36));
+      if (best.rating) drawStars(ctx, best.rating, cx - 34 * 5.48 / 2, 862 + (bl.length - 1) * 36, 34, C.ac);
     }
     foot();
   }
@@ -1753,7 +1760,8 @@ const ACT = {
   start: el => startTimer(el.dataset.id),
   openTimer: () => open('timer'),
   pause: () => { const t = S.timer; if (t.running){ t.acc += Date.now() - t.since; t.running = false; ambPause(true); } else { t.since = Date.now(); t.running = true; if (AMB.type === 'none' && soundOf(S.settings.sound) !== 'none') ambPlay(soundOf(S.settings.sound)); else ambPause(false); } save(); renderLayer(); },
-  finish: () => { const t = S.timer; const ms = liveMs(); const p = pace(t.bookId); open('log', { id:t.bookId, from:t.from, to:Math.round(t.from + ms/3.6e6*p.pace), min:Math.max(1, Math.round(ms/60000)), timer:true }); },
+  finish: () => { const t = S.timer; const ms = liveMs(), wasRunning = t.running; if (t.running){ t.acc += Date.now() - t.since; t.running = false; ambPause(true); save(); } const p = pace(t.bookId); open('log', { id:t.bookId, from:t.from, to:Math.round(t.from + ms/3.6e6*p.pace), min:Math.max(1, Math.round(ms/60000)), timer:true, wasRunning, back:{ type:'timer' } }); },
+  resumeTimer: () => { const t = S.timer, run = sheet.wasRunning; open('timer'); if (t && run && !t.running){ t.since = Date.now(); t.running = true; if (AMB.type === 'none' && soundOf(S.settings.sound) !== 'none') ambPlay(soundOf(S.settings.sound)); else ambPause(false); save(); renderLayer(); } },
   discardTimer: () => { S.timer = null; ambStop(); save(); close(); toast('Sitzung verworfen.'); },
   log: el => open('log', { id:el.dataset.id }),
   soundMenu: () => { sheet.soundMenu = !sheet.soundMenu; renderLayer(); },
@@ -1776,7 +1784,7 @@ const ACT = {
     const date = dateK === today() ? new Date().toISOString() : new Date(dateK + 'T20:00:00').toISOString();
     S.sessions.push({ id:uid(), bookId:b.id, date, from, to, min:Math.round(min*10)/10, est, run:b.run || 0 }); claim(b);
     const done = $('#doneIn'); if (done && done.checked){ b.status = 'done'; b.finished = date; } else if (b.status === 'want') b.status = 'reading';
-    if (sheet.timer) { S.timer = null; ambStop(); }
+    if (sheet.timer) { S.timer = null; ambStop(); sheet.back = null; }
     save(); close();
     if (bookDone) finishSplash(b); else celebrate({ pages: to - from, min, est, wasMet, bookDone, title: b.title, bookId: b.id });
   },
@@ -1797,7 +1805,10 @@ const ACT = {
   ocrRetake: () => $('#ocrIn').click(),
   ocrRun: () => runOcr(),
   ocrBack: () => { sheet = sheet.prev; sheet._focused = true; renderLayer(); },
-  saveQuote: () => { const text = $('#qText').value.trim(); if (!text) return toast('Bitte das Zitat eintragen.'); S.quotes.push({ id:uid(), text, bookId:$('#qBook').value, page:$('#f_qPage').value, date:new Date().toISOString() }); save(); const back = sheet.back; if (back === 'timer' && S.timer){ open('timer'); render(); } else close(); toast('Zitat gespeichert.'); },
+  editQuote: () => { const q = S.quotes.find(x => x.id === sheet.id); open('quote', { editId:q.id, text:q.text, bookId:q.bookId || '', page:q.page || '', back:{ type:'card', id:q.id, c:sheet.c } }); },
+  saveQuote: () => { const text = $('#qText').value.trim(); if (!text) return toast('Bitte das Zitat eintragen.'); const eq = sheet.editId && S.quotes.find(x => x.id === sheet.editId);
+    if (eq){ Object.assign(eq, { text, bookId:$('#qBook').value, page:$('#f_qPage').value }); delete eq.sample; save(); close(); return toast('Zitat aktualisiert.'); }
+    S.quotes.push({ id:uid(), text, bookId:$('#qBook').value, page:$('#f_qPage').value, date:new Date().toISOString() }); save(); const back = sheet.back; if (back === 'timer' && S.timer){ open('timer'); render(); } else close(); toast('Zitat gespeichert.'); },
   card: el => open('card', { id:el.dataset.id }),
   cf: el => { const c = sheet.c, P = fontMeta(c.font), F = fontMeta(el.dataset.v); c.font = F.f; c.w = clampW(F, c.w); if (F.script && !P.script) c.size = 32; if (!F.script && P.script) c.size = 21; rememberCard(); renderLayer(); },
   cit: el => { sheet.c.ital = el.dataset.v === '1'; rememberCard(); renderLayer(); },
