@@ -753,6 +753,7 @@ const SHEETS = {
       <div class="rel label" style="margin-top:10px">${t.running ? 'Pause' : 'Weiterlesen'}</div>
       <div style="flex:1;min-height:40px"></div>
       <div class="row rel" style="align-self:stretch;gap:12px">
+        <button class="rb card-bg" style="width:60px;height:60px;color:var(--mu)" data-act="askDiscard" aria-label="Sitzung verwerfen">${ic('x',22)}</button>
         <button class="pill grow" style="height:60px;background:var(--card);color:var(--ink);box-shadow:var(--shadow)" data-act="finish">${ic('check',20)} Fertig gelesen</button>
         <button class="rb card-bg" style="width:60px;height:60px" data-act="newQuote" data-from="timer" aria-label="Zitat merken">${ic('quote',24)}</button>
       </div>
@@ -842,6 +843,18 @@ const SHEETS = {
       <div class="row rel" style="gap:14px"><button class="rb card-bg s48" data-act="close" aria-label="Zurück">${ic('back')}</button><div><h1 class="d" style="font-size:30px;line-height:1.1">${L}</h1><div class="label">${bs.length} ${bs.length === 1 ? 'Buch' : 'Bücher'}</div></div></div>
       <div class="card rel">${bs.length ? bs.map(b => bookRow(b, g)).join('') : '<div class="mu" style="padding:8px 0">Hier ist nichts mehr.</div>'}</div>
     </div></div>`;
+  },
+  discard(){
+    const m = Math.round(liveMs() / 60000);
+    return `${S.timer ? SHEETS.timer() : ''}<div class="scrim" data-act="close" style="z-index:60"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dcT" style="z-index:61"><div class="grab"></div>
+      <div class="stack" style="gap:14px;align-items:center;text-align:center">
+        <h2 class="d" id="dcT">Sitzung verwerfen?</h2>
+        <div class="mu">${m >= 1 ? `Die gemessenen ${fmtMin(m)} werden nicht gespeichert.` : 'Diese Sitzung wird nicht gespeichert.'}</div>
+        <div class="row" style="gap:10px;align-self:stretch">
+          <button class="pill grow" style="background:var(--sand);color:var(--ink)" data-act="close">Nein</button>
+          <button class="pill grow" data-act="discardTimer">Ja, verwerfen</button>
+        </div>
+      </div></div>`;
   },
   editSess(){
     const s = S.sessions.find(x => x.id === sheet.id), b = book(s.bookId);
@@ -1762,6 +1775,7 @@ const ACT = {
   pause: () => { const t = S.timer; if (t.running){ t.acc += Date.now() - t.since; t.running = false; ambPause(true); } else { t.since = Date.now(); t.running = true; if (AMB.type === 'none' && soundOf(S.settings.sound) !== 'none') ambPlay(soundOf(S.settings.sound)); else ambPause(false); } save(); renderLayer(); },
   finish: () => { const t = S.timer; const ms = liveMs(), wasRunning = t.running; if (t.running){ t.acc += Date.now() - t.since; t.running = false; ambPause(true); save(); } const p = pace(t.bookId); open('log', { id:t.bookId, from:t.from, to:Math.round(t.from + ms/3.6e6*p.pace), min:Math.max(1, Math.round(ms/60000)), timer:true, wasRunning, back:{ type:'timer' } }); },
   resumeTimer: () => { const t = S.timer, run = sheet.wasRunning; open('timer'); if (t && run && !t.running){ t.since = Date.now(); t.running = true; if (AMB.type === 'none' && soundOf(S.settings.sound) !== 'none') ambPlay(soundOf(S.settings.sound)); else ambPause(false); save(); renderLayer(); } },
+  askDiscard: () => open('discard', { back:{ type:'timer' } }),
   discardTimer: () => { S.timer = null; ambStop(); save(); close(); toast('Sitzung verworfen.'); },
   log: el => open('log', { id:el.dataset.id }),
   soundMenu: () => { sheet.soundMenu = !sheet.soundMenu; renderLayer(); },
